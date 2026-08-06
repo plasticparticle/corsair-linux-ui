@@ -1,7 +1,7 @@
 <div align="center">
   <img src="icons/icon.png" width="128" alt="Corsair Control icon: a mint mouse with an orange illuminated logo">
 
-  # Corsair Control for Linux
+  # Corsair Control Driver & UI for Linux
 
   **Your mouse. Your shortcuts. Your Linux box.**
 
@@ -9,6 +9,15 @@
 </div>
 
 ---
+
+> [!CAUTION]
+> ## Experimental pre-release — install at your own risk
+>
+> Corsair Control `v0.1.0` is an early hardware-driver pre-release. It is **far from production-ready or security-hardened**, has not received an independent security audit, and currently has meaningful testing only on one Ironclaw Wireless SE (`1b1c:2b32`).
+>
+> The application installs a udev permission rule, reads and grabs raw Linux input devices, creates a virtual input device, and sends reverse-engineered commands to mouse hardware. Bugs could break input until the mouse is reconnected, expose unintended device access, lose mappings, or behave differently on untested firmware and distributions. The release packages are unsigned; SHA-256 checksums provide corruption detection, not publisher authentication.
+>
+> Inspect the source and packaging scripts before installing. Do not use this on a critical workstation or with hardware you cannot afford to troubleshoot. **You accept all risk by installing or running it.**
 
 Corsair makes a very comfortable mouse. Linux makes a very comfortable operating system. The two just needed someone to introduce them properly.
 
@@ -65,17 +74,41 @@ Button mappings stay active while the process is running. Closing the window hid
 
 ## Install it
 
-### The pleasantly boring `.deb` route
+### Download the latest Linux packages
 
-Each published GitHub release automatically grows a Debian package of its own. Download the `amd64` `.deb` from the release page, then let APT install it and its runtime libraries:
+The current pre-release is **v0.1.0 for x86-64 Linux**:
+
+| Distribution | Package | Direct download |
+|---|---|---|
+| Debian, Ubuntu, Linux Mint | `.deb` (`amd64`) | [corsair-control_0.1.0_amd64.deb](https://github.com/plasticparticle/corsair-linux-ui/releases/download/v0.1.0/corsair-control_0.1.0_amd64.deb) |
+| Fedora and RPM-based distributions | `.rpm` (`x86_64`) | [corsair-control-0.1.0-1.x86_64.rpm](https://github.com/plasticparticle/corsair-linux-ui/releases/download/v0.1.0/corsair-control-0.1.0-1.x86_64.rpm) |
+| Integrity manifest | SHA-256 | [SHA256SUMS](https://github.com/plasticparticle/corsair-linux-ui/releases/download/v0.1.0/SHA256SUMS) |
+
+[Open the v0.1.0 release page](https://github.com/plasticparticle/corsair-linux-ui/releases/tag/v0.1.0) or [browse all releases](https://github.com/plasticparticle/corsair-linux-ui/releases). Packages are built by GitHub Actions from the tagged source.
+
+### Debian, Ubuntu, or Linux Mint
+
+Download the `.deb` and its checksum manifest from the links above, then verify and install it:
 
 ```bash
+grep 'corsair-control_0.1.0_amd64.deb$' SHA256SUMS | sha256sum --check
 sudo apt install ./corsair-control_0.1.0_amd64.deb
 ```
 
-The package installs the application, desktop entry, icons, and udev permissions in their standard system locations. Reconnect the mouse once after the first installation.
+### Fedora or another RPM-based distribution
 
-### 1. Install build dependencies
+RPM support is new and more experimental than the Debian package. Download both files, verify the package, and install it with DNF:
+
+```bash
+grep 'corsair-control-0.1.0-1.x86_64.rpm$' SHA256SUMS | sha256sum --check
+sudo dnf install ./corsair-control-0.1.0-1.x86_64.rpm
+```
+
+Both packages install the application, desktop entry, icons, and udev permissions in standard system locations. Reconnect the mouse once after the first installation, then start **Corsair Control** from the application menu.
+
+### Build from source
+
+#### 1. Install build dependencies
 
 On Ubuntu 24.04, Linux Mint, and related Debian-based systems:
 
@@ -91,7 +124,7 @@ OpenRGB is optional. Install it only when using an older supported Ironclaw revi
 sudo apt install openrgb
 ```
 
-### 2. Build and install
+#### 2. Build and install
 
 ```bash
 chmod +x scripts/install.sh scripts/uninstall.sh
@@ -202,13 +235,14 @@ Run the checks:
 cargo test --offline
 cargo clippy --offline --all-targets -- -D warnings
 node --check ui/app.js
-bash -n scripts/build-deb.sh scripts/install.sh scripts/uninstall.sh
+bash -n scripts/build-deb.sh scripts/build-rpm.sh scripts/install.sh scripts/uninstall.sh
 ```
 
-Build the same Debian package produced by GitHub Releases:
+Build the same packages produced by GitHub Releases (`rpmbuild` is required for RPM output):
 
 ```bash
 ./scripts/build-deb.sh v0.1.0
+./scripts/build-rpm.sh v0.1.0
 ```
 
 The release tag must match the version in `Cargo.toml`; successful packages land in `dist/`.
