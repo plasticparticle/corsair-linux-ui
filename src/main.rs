@@ -8,6 +8,9 @@ use model::{ButtonDefinition, Config, Device, Profile};
 use rgb::{RgbAdapter, RgbStatus};
 use serde::Serialize;
 use std::{
+    ffi::OsStr,
+    fs,
+    io::Write,
     path::PathBuf,
     sync::{mpsc, Arc, Mutex},
     thread,
@@ -320,7 +323,103 @@ fn window_close(window: tauri::WebviewWindow) -> Result<(), String> {
     window.close().map_err(|e| e.to_string())
 }
 
+#[cfg(target_os = "linux")]
+const AUTOSTART_DESKTOP_ENTRY: &str = "[Desktop Entry]\n\
+Type=Application\n\
+Name=Corsair Control\n\
+Comment=Start Corsair Control in the system tray\n\
+Exec=corsair-control --background\n\
+Icon=corsair-control\n\
+Terminal=false\n\
+StartupNotify=false\n\
+X-GNOME-Autostart-enabled=true\n\
+X-Corsair-Control-Autostart=true\n";
+
+#[cfg(target_os = "linux")]
+fn linux_config_home(
+    xdg_config_home: Option<&OsStr>,
+    home: Option<&OsStr>,
+) -> Result<PathBuf, String> {
+    if let Some(value) = xdg_config_home {
+        let path = PathBuf::from(value);
+        if !value.is_empty() && path.is_absolute() {
+            return Ok(path);
+        }
+    }
+    home.filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .map(|path| path.join(".config"))
+        .ok_or_else(|| "Cannot find your Linux configuration directory".to_string())
+}
+
+#[cfg(target_os = "linux")]
+fn autostart_path() -> Result<PathBuf, String> {
+    linux_config_home(
+        std::env::var_os("XDG_CONFIG_HOME").as_deref(),
+        std::env::var_os("HOME").as_deref(),
+    )
+    .map(|path| path.join("autostart/corsair-control.desktop"))
+}
+
+#[cfg(target_os = "linux")]
+#[tauri::command]
+fn get_autostart() -> Result<bool, String> {
+    let path = autostart_path()?;
+    match fs::read_to_string(path) {
+        Ok(entry) => Ok(entry
+            .lines()
+            .any(|line| line.trim() == "X-Corsair-Control-Autostart=true")
+            && !entry.lines().any(|line| line.trim() == "Hidden=true")),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+        Err(error) => Err(format!("Cannot read the login setting: {error}")),
+    }
+}
+
+#[cfg(target_os = "linux")]
+#[tauri::command]
+fn set_autostart(enabled: bool) -> Result<bool, String> {
+    let path = autostart_path()?;
+    if !enabled {
+        return match fs::remove_file(path) {
+            Ok(()) => Ok(false),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+            Err(error) => Err(format!("Cannot disable start on login: {error}")),
+        };
+    }
+
+    let parent = path
+        .parent()
+        .ok_or_else(|| "The login setting path has no parent directory".to_string())?;
+    fs::create_dir_all(parent)
+        .map_err(|error| format!("Cannot create the autostart directory: {error}"))?;
+    let temporary = path.with_extension(format!("desktop.{}.tmp", std::process::id()));
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&temporary)
+        .map_err(|error| format!("Cannot prepare the login setting: {error}"))?;
+    file.write_all(AUTOSTART_DESKTOP_ENTRY.as_bytes())
+        .and_then(|()| file.sync_all())
+        .map_err(|error| format!("Cannot write the login setting: {error}"))?;
+    fs::rename(&temporary, &path)
+        .map_err(|error| format!("Cannot enable start on login: {error}"))?;
+    Ok(true)
+}
+
+#[cfg(not(target_os = "linux"))]
+#[tauri::command]
+fn get_autostart() -> Result<bool, String> {
+    Err("Start on login is currently available on Linux only".into())
+}
+
+#[cfg(not(target_os = "linux"))]
+#[tauri::command]
+fn set_autostart(_enabled: bool) -> Result<bool, String> {
+    Err("Start on login is currently available on Linux only".into())
+}
+
 fn main() {
+    let start_in_background = std::env::args_os().any(|argument| argument == "--background");
     let config_path = model::config_path();
     let devices = model::discover_devices();
     let mut loaded_config = model::load_config(&config_path);
@@ -414,6 +513,9 @@ fn main() {
                 let adapter = RgbAdapter::probe(&rgb_devices, bragi_rgb);
                 *rgb_handle.state::<AppState>().rgb.lock().unwrap() = adapter;
             });
+            if !start_in_background {
+                show_main_window(app.handle());
+            }
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -435,7 +537,9 @@ fn main() {
             window_start_drag,
             window_minimize,
             window_toggle_maximize,
-            window_close
+            window_close,
+            get_autostart,
+            set_autostart
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Corsair Control");
@@ -444,6 +548,32 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn xdg_config_home_precedes_home_for_autostart() {
+        assert_eq!(
+            linux_config_home(
+                Some(OsStr::new("/tmp/corsair-xdg")),
+                Some(OsStr::new("/tmp/corsair-home"))
+            ),
+            Ok(PathBuf::from("/tmp/corsair-xdg"))
+        );
+        assert_eq!(
+            linux_config_home(
+                Some(OsStr::new("relative-path")),
+                Some(OsStr::new("/tmp/corsair-home"))
+            ),
+            Ok(PathBuf::from("/tmp/corsair-home/.config"))
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn autostart_entry_launches_the_tray_in_background() {
+        assert!(AUTOSTART_DESKTOP_ENTRY.contains("Exec=corsair-control --background"));
+        assert!(AUTOSTART_DESKTOP_ENTRY.contains("X-Corsair-Control-Autostart=true"));
+    }
 
     #[test]
     fn monitor_hit_test_supports_negative_desktop_coordinates() {

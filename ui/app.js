@@ -21,6 +21,9 @@ function buttonDef(id){return state.buttons.find(b=>b.id===id)||{id,name:id,sour
 function humanAction(mapping){return mapping.label||mapping.value||mapping.action}
 function markDirty(){dirty=true;$('#dirty-indicator').textContent='UNSAVED CHANGES';$('#dirty-indicator').classList.add('dirty')}
 function toast(message,error=false){const el=$('#toast');el.querySelector('p').textContent=message;el.classList.toggle('error',error);el.classList.add('show');clearTimeout(el.timer);el.timer=setTimeout(()=>el.classList.remove('show'),2600)}
+function renderAutostart(enabled,label=enabled?'ON / TRAY':'OFF'){$('#start-on-login').checked=enabled;$('#startup-state').textContent=label}
+
+async function loadAutostart(){const input=$('#start-on-login');if(!invoke){input.disabled=true;renderAutostart(false,'NATIVE ONLY');return}input.disabled=true;try{renderAutostart(await call('get_autostart'))}catch(error){renderAutostart(false,'UNAVAILABLE');toast(String(error),true)}finally{input.disabled=false}}
 
 function renderDevice(){const device=state.devices[0];const connected=!!device;$('#title-device-name').textContent=device?.name||'No Corsair device';$('#title-device-id').textContent=device?`${device.vendorId}:${device.productId}`.toUpperCase():'—';$('.title-device .signal').classList.toggle('online',connected);$('#rail-device-name').textContent=device?.name.replace(/^CORSAIR /i,'')||'No device';$('#rail-device-transport').textContent=connected?`${device.transport} / connected`.toUpperCase():'DISCONNECTED';$('#usb-id').textContent=device?`${device.vendorId}:${device.productId}`.toUpperCase():'—';$('#usb-input').textContent=device?.inputNodes?.length?`${device.inputNodes.length} EVENT NODES`:'RECONNECT AFTER INSTALL';$('#usb-card').classList.toggle('connected',connected)}
 function renderProfiles(){const list=$('#profile-list');list.innerHTML='';state.config.profiles.forEach(profile=>{const button=document.createElement('button');button.className=`profile-item ${profile.id===state.config.activeProfile?'active':''}`;button.style.setProperty('--profile-color',profile.accent);button.innerHTML=`<i></i><b>${escapeHtml(profile.name)}</b><span>${profile.id===state.config.activeProfile?'LIVE':'··'}</span>`;button.onclick=()=>activateProfile(profile.id);list.append(button)})}
@@ -100,6 +103,7 @@ function bindEvents(){
   $('#learn-button').onclick=async()=>{try{await call('learn_button',{buttonId:selectedButton});$('#learn-button').classList.add('listening');$('#learn-button').innerHTML='<span>●</span> PRESS A MOUSE BUTTON'}catch(error){toast(String(error),true)}};
   $('#save-profile').onclick=save;$$('.save-alias').forEach(b=>b.onclick=save);
   $('#rescan').onclick=rescan;$('#rescan-main').onclick=rescan;
+  $('#start-on-login').onchange=async e=>{const input=e.target,previous=!input.checked,desired=input.checked;input.disabled=true;renderAutostart(desired,'UPDATING');try{const enabled=await call('set_autostart',{enabled:desired});renderAutostart(enabled);toast(enabled?'Corsair Control will start in the tray':'Start on login disabled')}catch(error){renderAutostart(previous,'ERROR');toast(String(error),true)}finally{input.disabled=false}};
   $('#new-profile').onclick=async()=>{const name=prompt('Profile name');if(!name)return;const profile=clone(workingProfile);profile.name=name.trim().slice(0,40);profile.id=profile.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,32)||`profile-${Date.now()}`;try{await call('create_profile',{profile});state.config.profiles.push(profile);await activateProfile(profile.id);toast('Profile created')}catch(error){toast(String(error),true)}};
   $$('#effect-options button').forEach(button=>button.onclick=()=>{workingProfile.lighting.mode=button.dataset.mode;renderLighting();markDirty()});
   $('#primary-color').oninput=e=>{workingProfile.lighting.color=e.target.value;renderLighting();markDirty()};$('#secondary-color').oninput=e=>{workingProfile.lighting.secondaryColor=e.target.value;renderLighting();markDirty()};
@@ -114,5 +118,5 @@ function bindEvents(){
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
 }
 
-async function init(){try{state=await call('get_state')}catch{state=clone(demoState)}renderAll();bindEvents();polling=setInterval(pollState,100);pollState();if(listen)listen('physical-input',event=>handlePhysicalInput(event.payload)).catch(()=>{})}
+async function init(){try{state=await call('get_state')}catch{state=clone(demoState)}renderAll();bindEvents();await loadAutostart();polling=setInterval(pollState,100);pollState();if(listen)listen('physical-input',event=>handlePhysicalInput(event.payload)).catch(()=>{})}
 init();

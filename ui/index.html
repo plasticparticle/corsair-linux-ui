@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="action-editor.css">
   <link rel="stylesheet" href="mouse-diagram.css">
   <link rel="stylesheet" href="lighting-effects.css">
+  <link rel="stylesheet" href="autostart.css">
 </head>
 <body>
   <div class="shell">
@@ -223,7 +224,15 @@
 
         <section class="panel" id="panel-connections">
           <div class="panel-heading"><div><span class="eyebrow">TRANSPORT / LINK STATUS</span><h1>Connections</h1></div><button class="secondary-button" id="rescan-main">↻ RESCAN</button></div>
-          <div class="connection-intro"><b>IRONCLAW TRI-MODE</b><p>The mouse can expose different capabilities on each transport. Profiles remain portable; hardware RGB and DPI writes are negotiated separately.</p></div>
+          <div class="connection-intro">
+            <b>IRONCLAW TRI-MODE</b>
+            <p>The mouse can expose different capabilities on each transport. Profiles remain portable; hardware RGB and DPI writes are negotiated separately.</p>
+            <label class="startup-toggle" for="start-on-login" title="Launch quietly in the system tray with your Linux desktop session">
+              <input type="checkbox" id="start-on-login">
+              <span class="startup-switch" aria-hidden="true"><i></i></span>
+              <span class="startup-label"><b>START ON LOGIN</b><small id="startup-state">CHECKING</small></span>
+            </label>
+          </div>
           <div class="connection-grid">
             <article class="connection-card connected" id="usb-card"><span class="connection-number">01</span><div class="connection-icon">⌁</div><span class="status-pill">CONNECTED</span><h2>USB wired</h2><p>Lowest-latency configuration channel and charging link.</p><dl><div><dt>DEVICE ID</dt><dd id="usb-id">1B1C:2B32</dd></div><div><dt>INPUT</dt><dd id="usb-input">HID ACTIVE</dd></div></dl></article>
             <article class="connection-card"><span class="connection-number">02</span><div class="connection-icon">◈</div><span class="status-pill">NOT DETECTED</span><h2>Slipstream 2.4</h2><p>Requires the Corsair wireless receiver. Switch the mouse before rescanning.</p><dl><div><dt>LATENCY</dt><dd>SUB-1 MS</dd></div><div><dt>CONFIG</dt><dd>RECEIVER DEPENDENT</dd></div></dl></article>
