@@ -1,0 +1,26 @@
+.hotspots [data-button] { cursor: pointer; outline: none; }
+.hotspots [data-button] > :first-child { fill: #22292a; stroke: #697573; stroke-width: 2; transition: .2s; }
+.hotspots [data-button] text { fill: #9aa3a1; font: 700 12px "DejaVu Sans Mono", monospace; text-anchor: middle; pointer-events: none; }
+.hotspots [data-button]:hover > :first-child,
+.hotspots [data-button]:focus > :first-child,
+.hotspots [data-button].active > :first-child { fill: #24433f; stroke: #38d9c5; filter: drop-shadow(0 0 7px #38d9c577); }
+.hotspots [data-button].active text { fill: #fff; }
+.hotspots [data-button].pressed > :first-child {
+  fill: #5a2b17;
+  stroke: #ff6b35;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 12px #ff6b35cc);
+}
+.hotspots [data-button].pressed text { fill: #fff; }
+.mapping-row.pressed {
+  background: #2c1b14;
+  box-shadow: inset 3px 0 #ff6b35;
+}
+.mapping-row.pressed b,
+.mapping-row.pressed em { color: #ff9a71; }
+.stage-note.physical span { color: #ff6b35; text-shadow: 0 0 9px #ff6b3588; }
+.stage-note.physical b::after { content: "  /  LIVE"; color: #ff9a71; }
+.titlebar { cursor: grab; }
+.titlebar:active { cursor: grabbing; }
+.window-controls,
+.window-controls button { cursor: default; }

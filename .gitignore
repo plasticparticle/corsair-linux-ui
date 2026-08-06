@@ -1,0 +1,5 @@
+/target/
+/gen/
+/ckb-next-dev-detect-report.gz
+*.swp
+*~

@@ -1,0 +1,125 @@
+.lighting-grid { min-height: 570px; }
+
+.lighting-mouse {
+  position: relative;
+  z-index: 2;
+  height: 82%;
+  max-height: 490px;
+  overflow: visible;
+  filter: drop-shadow(0 22px 25px #000);
+}
+
+.lighting-shell { fill: #090c0d; stroke: #515b5c; stroke-width: 3; }
+.lighting-palm { fill: url(#light-shell); stroke: #343c3d; stroke-width: 2; }
+.lighting-click { fill: #202627; stroke: #566061; stroke-width: 2; }
+.lighting-rail { fill: #090c0d; }
+.lighting-wheel { fill: #242b2c; stroke: #687273; stroke-width: 2; }
+.wheel-tread { fill: none; stroke: #080b0c; stroke-width: 4; }
+.lighting-center { fill: #161b1c; stroke: #566061; stroke-width: 2; }
+
+.rgb-zone {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity .25s, fill .25s, stroke .25s, filter .25s;
+}
+
+.rgb-front,
+.rgb-logo {
+  fill: var(--primary, #38d9c5);
+  filter: drop-shadow(0 0 9px var(--primary, #38d9c5));
+}
+
+.rgb-wheel {
+  fill: none;
+  stroke: var(--primary, #38d9c5);
+  stroke-width: 7;
+  filter: drop-shadow(0 0 8px var(--primary, #38d9c5));
+}
+
+.light-preview[data-effect="gradient"] .rgb-front { fill: var(--secondary); filter: drop-shadow(0 0 9px var(--secondary)); }
+.light-preview[data-effect="gradient"] .rgb-wheel { stroke: color-mix(in srgb, var(--primary), var(--secondary)); }
+
+.light-preview[data-effect="breathing"] .rgb-zone {
+  animation: rgb-breathe var(--effect-duration, 2.8s) ease-in-out infinite;
+}
+
+.light-preview[data-effect="spectrum"] .rgb-zone {
+  animation: rgb-spectrum var(--effect-duration, 3.5s) linear infinite;
+}
+
+.light-preview[data-effect="wave"] .rgb-zone {
+  animation: rgb-wave var(--effect-duration, 2.5s) ease-in-out infinite;
+}
+
+.light-preview[data-effect="wave"] .rgb-wheel { animation-delay: calc(var(--effect-duration, 2.5s) * -.33); }
+.light-preview[data-effect="wave"] .rgb-logo { animation-delay: calc(var(--effect-duration, 2.5s) * -.66); }
+
+.light-preview[data-effect="reactive"] .rgb-zone { opacity: .18; }
+.light-preview[data-effect="reactive"]::after {
+  content: "PRESS A MOUSE BUTTON";
+  position: absolute;
+  top: 20px;
+  color: var(--orange);
+  font: 8px var(--mono);
+  letter-spacing: .13em;
+}
+.light-preview[data-effect="reactive"].reactive-hit .rgb-zone { animation: rgb-hit .42s ease-out; }
+
+.light-preview[data-effect="off"] .rgb-zone,
+.rgb-zone.zone-off { opacity: .05 !important; filter: none !important; animation: none !important; }
+
+.light-preview .rgb-zone:not(.zone-off) { opacity: var(--light-level, .72); }
+
+@keyframes rgb-breathe {
+  0%,100% { opacity: .1; filter: drop-shadow(0 0 2px currentColor); }
+  50% { opacity: var(--light-level, .72); filter: drop-shadow(0 0 13px currentColor); }
+}
+
+@keyframes rgb-spectrum {
+  to { filter: hue-rotate(360deg) drop-shadow(0 0 10px currentColor); }
+}
+
+@keyframes rgb-wave {
+  0%,100% { opacity: .1; transform: scale(.94); }
+  45% { opacity: var(--light-level, .72); transform: scale(1.04); }
+}
+
+@keyframes rgb-hit {
+  0% { opacity: 1; filter: brightness(2) drop-shadow(0 0 18px var(--orange)); transform: scale(1.12); }
+  100% { opacity: .18; transform: scale(1); }
+}
+
+.effect-options {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.effect-options button {
+  height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.effect-options button i {
+  display: block;
+  width: 26px;
+  height: 4px;
+  background: #414a49;
+  box-shadow: none;
+}
+
+.effect-options button[data-mode="gradient"] i { background: linear-gradient(90deg, var(--mint), var(--orange)); }
+.effect-options button[data-mode="breathing"] i { background: var(--mint); animation: effect-dot 1.5s ease-in-out infinite; }
+.effect-options button[data-mode="spectrum"] i { background: linear-gradient(90deg, #ff426d, #ffd542, #38d9c5, #7775ff); }
+.effect-options button[data-mode="wave"] i { background: linear-gradient(90deg, transparent, var(--mint), transparent); animation: effect-slide 1.2s linear infinite; }
+.effect-options button[data-mode="reactive"] i { background: var(--orange); box-shadow: 0 0 7px var(--orange); }
+.effect-options button[data-mode="off"] i { background: #252b2c; }
+.effect-options button.active i { box-shadow: 0 0 8px currentColor; }
+
+@keyframes effect-dot { 50% { opacity: .2; transform: scaleX(.35); } }
+@keyframes effect-slide { 50% { transform: translateX(7px); } }
+
+.zone-list { grid-template-columns: repeat(3, 1fr); }

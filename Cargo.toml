@@ -1,0 +1,23 @@
+[package]
+name = "corsair-control"
+version = "0.1.0"
+description = "Native Linux control surface for Corsair input devices"
+authors = ["Corsair Control contributors"]
+edition = "2021"
+license = "GPL-3.0-or-later"
+rust-version = "1.77.2"
+
+[build-dependencies]
+tauri-build = { version = "2.6.3", features = [] }
+
+[dependencies]
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2.11.5", features = ["tray-icon"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

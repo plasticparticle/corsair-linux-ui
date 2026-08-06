@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Corsair Control</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="hotspots.css">
+  <link rel="stylesheet" href="action-editor.css">
+  <link rel="stylesheet" href="mouse-diagram.css">
+  <link rel="stylesheet" href="lighting-effects.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="titlebar" data-tauri-drag-region>
+      <div class="brand" data-tauri-drag-region>
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span data-tauri-drag-region>CORSAIR <b>CONTROL</b></span>
+        <span class="build-tag" data-tauri-drag-region>LINUX / 01</span>
+      </div>
+      <div class="title-device" data-tauri-drag-region>
+        <span class="signal online"></span>
+        <span id="title-device-name">Scanning hardware…</span>
+        <span id="title-device-id">—</span>
+      </div>
+      <div class="window-controls">
+        <button id="window-minimize" aria-label="Minimize">—</button>
+        <button id="window-maximize" aria-label="Maximize">□</button>
+        <button id="window-close" class="close" aria-label="Close">×</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="rail">
+        <div class="device-tile">
+          <div class="device-thumb" aria-hidden="true">
+            <svg viewBox="0 0 64 84"><path d="M32 2C16 2 8 16 8 34v20c0 18 9 28 24 28s24-10 24-28V34C56 16 48 2 32 2Z"/><path d="M32 3v28M10 34h44"/><rect x="28" y="9" width="8" height="15" rx="4"/></svg>
+          </div>
+          <div>
+            <span class="eyebrow">ACTIVE DEVICE</span>
+            <strong id="rail-device-name">No device</strong>
+            <small id="rail-device-transport">DISCONNECTED</small>
+          </div>
+          <button id="rescan" class="icon-button" aria-label="Rescan devices" title="Rescan devices">↻</button>
+        </div>
+
+        <nav class="section-nav" aria-label="Device settings">
+          <button class="nav-item active" data-panel="assignments"><span>01</span><b>Assignments</b><em id="assignment-count">12</em></button>
+          <button class="nav-item" data-panel="lighting"><span>02</span><b>Lighting</b><em id="rgb-nav-state">—</em></button>
+          <button class="nav-item" data-panel="performance"><span>03</span><b>Performance</b><em id="dpi-nav-state">1600</em></button>
+          <button class="nav-item" data-panel="connections"><span>04</span><b>Connections</b><em>3</em></button>
+        </nav>
+
+        <div class="profile-block">
+          <div class="rail-label"><span>PROFILES</span><button id="new-profile" aria-label="Add profile">+</button></div>
+          <div id="profile-list" class="profile-list"></div>
+        </div>
+
+        <div class="driver-health" id="driver-health">
+          <span class="health-light"></span>
+          <div><b>INPUT ENGINE</b><small id="driver-label">Checking permissions</small></div>
+          <button id="driver-info" aria-label="Driver details">i</button>
+        </div>
+      </aside>
+
+      <main>
+        <section class="panel active" id="panel-assignments">
+          <div class="panel-heading">
+            <div><span class="eyebrow">BUTTON MATRIX / LIVE PROFILE</span><h1>Assignments</h1></div>
+            <div class="heading-actions"><span class="dirty-indicator" id="dirty-indicator">ALL CHANGES SAVED</span><button class="primary-button" id="save-profile">SAVE TO PROFILE</button></div>
+          </div>
+          <div class="assign-grid">
+            <div class="mouse-stage">
+              <div class="stage-grid"></div>
+              <div class="axis axis-x">X / 00—52</div><div class="axis axis-y">Y / 00—67</div>
+              <svg class="mouse-blueprint" viewBox="0 0 560 720" role="img" aria-label="Interactive Corsair Ironclaw Wireless SE button map">
+                <defs>
+                  <linearGradient id="se-shell" x1=".15" y1="0" x2=".8" y2="1"><stop stop-color="#343a3b"/><stop offset=".45" stop-color="#1d2223"/><stop offset="1" stop-color="#101415"/></linearGradient>
+                  <linearGradient id="se-click" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#353b3c"/><stop offset="1" stop-color="#181d1e"/></linearGradient>
+                  <linearGradient id="se-rail" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#090c0d"/><stop offset=".5" stop-color="#1a2021"/><stop offset="1" stop-color="#080b0c"/></linearGradient>
+                  <pattern id="se-grip" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="14" height="14" fill="#121718"/><path d="M0 0v14M7 0v14" stroke="#303738" stroke-width="3"/></pattern>
+                  <filter id="se-shadow" x="-30%" y="-20%" width="160%" height="170%"><feDropShadow dx="0" dy="22" stdDeviation="20" flood-opacity=".7"/></filter>
+                  <filter id="se-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+
+                <g class="ironclaw-render" filter="url(#se-shadow)">
+                  <path class="se-silhouette" d="M278 24C187 18 119 54 88 126 68 173 66 248 61 331L49 489C40 615 126 684 276 695 420 687 501 615 491 487L480 233C475 119 419 43 331 25Z"/>
+                  <path class="se-palm" d="M139 286C166 253 214 236 280 236 348 236 405 258 443 300l28 194c8 101-64 162-194 174-128-10-202-72-195-174l20-162Z"/>
+                  <path class="se-grip" d="M70 332c17-31 42-55 75-70l28 38-19 292c-55-25-80-67-75-119Z"/>
+                  <path class="se-right-skirt" d="M442 292c26 37 38 78 39 125l9 75c6 72-31 124-91 153l-18-345Z"/>
+                  <path class="se-left-plate" d="M91 130C117 64 175 29 264 27l-8 211c-66 0-119 17-164 50L70 238c2-42 8-78 21-108Z"/>
+                  <path class="se-right-plate" d="M314 28c91 12 145 80 160 195l-10 67c-45-34-96-52-161-53l2-207Z"/>
+                  <path class="se-center-rail" d="M261 35h44l-2 229-20 68-25-68Z"/>
+                  <path class="se-thumb-shelf" d="M87 250c24-18 48-29 73-32l39 45-21 79-35-2-15 47-56-16Z"/>
+
+                  <g class="se-wheel-art">
+                    <rect class="se-wheel-light" x="262" y="77" width="42" height="111" rx="20"/>
+                    <rect class="se-wheel" x="267" y="69" width="32" height="126" rx="16"/>
+                    <path d="M269 87l13-8 15 8m-28 18 13-8 15 8m-28 18 13-8 15 8m-28 18 13-8 15 8m-28 18 13-8 15 8m-27 18 12-7 14 7"/>
+                  </g>
+                  <rect class="se-center-button" x="261" y="209" width="43" height="42" rx="7"/>
+                  <rect class="se-center-button" x="260" y="258" width="45" height="43" rx="7"/>
+                  <path class="se-channel" d="M282 304v58"/>
+
+                  <path class="se-front-grill" d="M75 165l28-56 21 14-22 81Z"/>
+                  <path class="se-front-grill" d="M459 148l13 67-13 14-16-96Z"/>
+                  <g class="se-front-rgb" filter="url(#se-glow)"><path d="M82 169l8-21 5 3-7 22Zm11 12 8-24 5 3-7 25Zm357-20 5-3 5 25-5 5Z"/></g>
+                  <path class="se-logo-rgb" filter="url(#se-glow)" d="M240 543c12-20 17-34 11-48 15 5 25 14 30 28-3-19-11-34-23-46 26 8 43 25 50 49-4-24-13-42-27-56 36 10 59 34 64 72-35-12-69-11-105 1Z"/>
+                  <path class="se-palm-seam" d="M159 599c73 48 155 52 239 9"/>
+                </g>
+
+                <g class="hotspots se-hotspots">
+                  <g tabindex="0" role="button" data-button="mouse1" aria-label="Left click"><path d="M92 132C118 67 176 31 258 30l-6 201c-62 2-112 18-157 49l-20-44c2-41 7-76 17-104Z"/><text x="172" y="151">01</text></g>
+                  <g tabindex="0" role="button" data-button="mouse2" aria-label="Right click"><path d="M311 31c86 14 137 79 157 190l-9 60c-43-31-92-48-151-50Z"/><text x="389" y="151">02</text></g>
+                  <g tabindex="0" role="button" data-button="wheelup" aria-label="Wheel up"><path d="M267 70h32v39h-32Z"/><text x="283" y="96">↑</text></g>
+                  <g tabindex="0" role="button" data-button="mouse3" aria-label="Wheel click"><path d="M267 109h32v43h-32Z"/><text x="283" y="136">03</text></g>
+                  <g tabindex="0" role="button" data-button="wheeldn" aria-label="Wheel down"><path d="M267 152h32v42h-32Z"/><text x="283" y="180">↓</text></g>
+                  <g tabindex="0" role="button" data-button="profup" aria-label="Profile up"><rect x="261" y="209" width="43" height="42" rx="7"/><text x="283" y="235">P+</text><rect class="hit-target" x="257" y="205" width="51" height="50" rx="9"/></g>
+                  <g tabindex="0" role="button" data-button="profdn" aria-label="Profile down"><rect x="260" y="258" width="45" height="43" rx="7"/><text x="283" y="285">P−</text><rect class="hit-target" x="256" y="254" width="53" height="51" rx="9"/></g>
+                  <g tabindex="0" role="button" data-button="dpiup" aria-label="DPI up"><path d="M92 104l37-17 17 54-45 24-20-15Z"/><text x="114" y="130">D+</text><path class="hit-target" d="M86 98l47-18 20 64-50 28-29-19Z"/></g>
+                  <g tabindex="0" role="button" data-button="dpidn" aria-label="DPI down"><path d="M100 166l46-20 18 53-54 27-21-16Z"/><text x="127" y="190">D−</text><path class="hit-target" d="M94 160l56-21 21 63-59 31-30-20Z"/></g>
+                  <g tabindex="0" role="button" data-button="forward" aria-label="Forward"><path d="M93 243l58-22 32 39-28 45-55 1-20-28Z"/><text x="128" y="271">F</text></g>
+                  <g tabindex="0" role="button" data-button="option" aria-label="Option"><path d="M86 310l69 3 17 37-27 36-67-12-13-29Z"/><text x="120" y="349">O</text><path class="hit-target" d="M80 304l79 3 20 44-31 42-76-14-14-34Z"/></g>
+                  <g tabindex="0" role="button" data-button="back" aria-label="Back"><path d="M76 383l68 15 9 42-29 31-58-23-8-33Z"/><text x="108" y="429">B</text></g>
+                </g>
+              </svg>
+              <div class="stage-note" id="physical-status"><span>PHYSICAL INPUT / READY</span><b>Interactive hardware map</b></div>
+            </div>
+
+            <div class="assignment-editor">
+              <div class="editor-index" id="editor-index">01</div>
+              <div class="editor-title"><span class="eyebrow">SELECTED CONTROL</span><h2 id="selected-button-name">Left click</h2><small id="selected-source">EV_KEY:272</small></div>
+              <button class="learn-button" id="learn-button"><span>◎</span> IDENTIFY INPUT</button>
+              <label class="field-label" for="action-type">ACTION</label>
+              <div class="action-select-box">
+                <span class="action-select-index">↳</span>
+                <div class="select-wrap"><select id="action-type">
+                  <option value="passthrough">Original button</option>
+                  <option value="shortcut">Keyboard shortcut</option>
+                  <option value="key">Single key</option>
+                  <option value="media">Media control</option>
+                  <option value="dpi">DPI control</option>
+                  <option value="profile">Profile control</option>
+                  <option value="disabled">Disabled</option>
+                </select></div>
+                <small id="action-selection-copy">Keep the mouse button's original behaviour.</small>
+              </div>
+
+              <div id="value-editor" class="value-editor">
+                <label class="field-label" id="action-value-label" for="action-value">ACTION VALUE</label>
+                <div class="select-wrap value-select-wrap"><select id="action-value"></select></div>
+              </div>
+
+              <section id="shortcut-editor" class="shortcut-editor" hidden>
+                <div class="shortcut-recorder-head">
+                  <div><span>KEYSTROKE RECORDER</span><small>Press Escape to cancel</small></div>
+                  <button id="record-shortcut" type="button"><i></i><span>RECORD SHORTCUT</span></button>
+                </div>
+                <div id="shortcut-preview" class="shortcut-preview" tabindex="0" role="button" aria-label="Record keyboard shortcut">
+                  <span class="shortcut-idle">NO SHORTCUT RECORDED</span>
+                </div>
+                <p id="shortcut-readable" class="shortcut-readable">Choose Record Shortcut, then press your key combination.</p>
+              </section>
+              <p class="field-hint" id="action-hint">Press the physical button and its original input event will pass through unchanged.</p>
+              <div class="quick-actions">
+                <span>QUICK SET</span>
+                <button data-quick="CTRL+C">COPY</button><button data-quick="CTRL+V">PASTE</button><button data-quick="PLAYPAUSE">PLAY / PAUSE</button>
+              </div>
+              <div class="mapping-list-wrap"><span class="field-label">PROFILE MAP</span><div id="mapping-list" class="mapping-list"></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-lighting">
+          <div class="panel-heading"><div><span class="eyebrow">THREE-ZONE LIGHT ENGINE</span><h1>Lighting</h1></div><div class="heading-actions"><button class="secondary-button save-alias">SAVE LIGHTING</button><button class="primary-button" id="apply-lighting">APPLY TO DEVICE</button></div></div>
+          <div class="capability-banner" id="rgb-banner"><span>!</span><div><b>PROTOCOL CHECK IN PROGRESS</b><p>Lighting controls unlock only when the connected firmware has a verified backend.</p></div></div>
+          <div class="lighting-grid">
+            <div class="light-preview">
+              <div class="light-orbit one"></div><div class="light-orbit two"></div>
+              <svg class="lighting-mouse" viewBox="0 0 420 520" aria-label="Ironclaw Wireless SE lighting preview">
+                <defs><linearGradient id="light-shell" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2b3233"/><stop offset="1" stop-color="#101415"/></linearGradient></defs>
+                <path class="lighting-shell" d="M210 17C137 13 80 42 55 102 39 143 39 202 36 268l-8 104c-7 91 58 139 181 146 118-6 183-55 176-146l-8-184C374 91 326 27 254 18Z"/>
+                <path class="lighting-palm" d="M94 215c24-24 63-36 116-36 55 0 100 15 129 45l23 151c6 74-52 116-152 123-100-7-156-50-150-123l17-124Z"/>
+                <path class="lighting-click" d="M57 105c21-55 70-82 144-85l-5 159c-53 1-95 15-132 39l-17-35c1-31 4-57 10-78Zm166-84c74 10 119 64 148 157l-7 41c-37-25-79-38-130-40Z"/>
+                <path class="lighting-rail" d="M199 28h35l-1 176-16 52-20-52Z"/>
+                <rect class="lighting-wheel" x="201" y="52" width="30" height="91" rx="15"/>
+                <path class="wheel-tread" d="M204 68l12-7 12 7m-24 17 12-7 12 7m-24 17 12-7 12 7m-24 17 12-7 12 7"/>
+                <rect class="lighting-center" x="201" y="154" width="31" height="32" rx="5"/><rect class="lighting-center" x="200" y="192" width="33" height="32" rx="5"/>
+                <path class="rgb-zone rgb-front" data-light-zone="front" d="M49 146l7-17 5 3-6 19Zm9 11 7-19 5 3-6 20Zm300-17 5-3 5 20-5 4Z"/>
+                <path class="rgb-zone rgb-wheel" data-light-zone="wheel" d="M199 67v60m35-60v60"/>
+                <path class="rgb-zone rgb-logo" data-light-zone="logo" d="M171 403c10-16 14-27 9-39 12 4 20 12 24 23-2-15-8-27-18-37 20 7 34 20 39 40-3-20-10-34-21-45 29 8 47 27 51 57-28-9-56-9-84 1Z"/>
+              </svg>
+              <span id="lighting-preview-label">STATIC / LIVE PREVIEW</span>
+            </div>
+            <div class="lighting-controls">
+              <label class="field-label">PATTERN</label><div class="effect-options" id="effect-options">
+                <button data-mode="static" class="active"><i></i><span>STATIC</span></button>
+                <button data-mode="gradient"><i></i><span>GRADIENT</span></button>
+                <button data-mode="breathing"><i></i><span>BREATHE</span></button>
+                <button data-mode="spectrum"><i></i><span>SPECTRUM</span></button>
+                <button data-mode="wave"><i></i><span>WAVE</span></button>
+                <button data-mode="reactive"><i></i><span>REACTIVE</span></button>
+                <button data-mode="off"><i></i><span>OFF</span></button>
+              </div>
+              <div class="color-row"><label><span>PRIMARY</span><input type="color" id="primary-color" value="#38d9c5"></label><label><span>SECONDARY</span><input type="color" id="secondary-color" value="#ff6b35"></label></div>
+              <label class="range-field"><span>BRIGHTNESS <b id="brightness-value">72%</b></span><input type="range" id="brightness" min="0" max="100" value="72"></label>
+              <label class="range-field"><span>EFFECT SPEED <b id="speed-value">45%</b></span><input type="range" id="speed" min="0" max="100" value="45"></label>
+              <span class="field-label">ACTIVE ZONES</span><div class="zone-list" id="zone-list"><label><input type="checkbox" data-zone="logo" checked><i></i>LOGO</label><label><input type="checkbox" data-zone="wheel" checked><i></i>WHEEL</label><label><input type="checkbox" data-zone="front" checked><i></i>FRONT GRILL</label></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-performance">
+          <div class="panel-heading"><div><span class="eyebrow">SENSOR / REPORTING</span><h1>Performance</h1></div><button class="primary-button save-alias">SAVE TO PROFILE</button></div>
+          <div class="performance-grid">
+            <div class="sensor-card"><span class="eyebrow">ACTIVE STAGE</span><div class="dpi-readout"><b id="dpi-readout">1600</b><small>DPI</small></div><div class="sensor-ring"><i></i><i></i><i></i></div><p>The Rust input engine tracks DPI-stage button presses in the active profile. Sensor writes remain disabled until the SE protocol is verified.</p></div>
+            <div class="stages-card"><div class="card-title"><div><span class="eyebrow">DPI LADDER</span><h2>Resolution stages</h2></div><button id="add-dpi">+ ADD STAGE</button></div><div id="dpi-stages" class="dpi-stages"></div></div>
+            <div class="poll-card"><span class="eyebrow">USB REPORT RATE</span><h2>Polling frequency</h2><div class="poll-options" id="poll-options"><button data-rate="125">125<small>HZ</small></button><button data-rate="250">250<small>HZ</small></button><button data-rate="500">500<small>HZ</small></button><button data-rate="1000" class="active">1000<small>HZ</small></button><button data-rate="2000">2000<small>HZ</small></button></div><p>This setting is stored in the profile. Hardware application is capability-gated.</p></div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-connections">
+          <div class="panel-heading"><div><span class="eyebrow">TRANSPORT / LINK STATUS</span><h1>Connections</h1></div><button class="secondary-button" id="rescan-main">↻ RESCAN</button></div>
+          <div class="connection-intro"><b>IRONCLAW TRI-MODE</b><p>The mouse can expose different capabilities on each transport. Profiles remain portable; hardware RGB and DPI writes are negotiated separately.</p></div>
+          <div class="connection-grid">
+            <article class="connection-card connected" id="usb-card"><span class="connection-number">01</span><div class="connection-icon">⌁</div><span class="status-pill">CONNECTED</span><h2>USB wired</h2><p>Lowest-latency configuration channel and charging link.</p><dl><div><dt>DEVICE ID</dt><dd id="usb-id">1B1C:2B32</dd></div><div><dt>INPUT</dt><dd id="usb-input">HID ACTIVE</dd></div></dl></article>
+            <article class="connection-card"><span class="connection-number">02</span><div class="connection-icon">◈</div><span class="status-pill">NOT DETECTED</span><h2>Slipstream 2.4</h2><p>Requires the Corsair wireless receiver. Switch the mouse before rescanning.</p><dl><div><dt>LATENCY</dt><dd>SUB-1 MS</dd></div><div><dt>CONFIG</dt><dd>RECEIVER DEPENDENT</dd></div></dl></article>
+            <article class="connection-card"><span class="connection-number">03</span><div class="connection-icon">ᛒ</div><span class="status-pill">NOT DETECTED</span><h2>Bluetooth</h2><p>Standard HID input works; vendor lighting reports may not be exposed.</p><dl><div><dt>POWER</dt><dd>LOW ENERGY</dd></div><div><dt>CONFIG</dt><dd>SOFTWARE PROFILE</dd></div></dl></article>
+          </div>
+          <div class="protocol-note"><span>ENGINEERING NOTE / 2B32</span><p>This SE revision is newer than the published community driver tables. Button remapping uses Linux evdev/uinput and is transport-independent. RGB will activate automatically when a tested protocol adapter is available.</p></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status"><span></span><p></p></div>
+    <dialog id="info-dialog"><button class="dialog-close">×</button><span class="eyebrow">INPUT ENGINE / DIAGNOSTIC</span><h2>Driver status</h2><pre id="driver-details"></pre><p>Install the included udev rule to grant the active desktop session access to the Corsair event nodes and <code>/dev/uinput</code>, then reconnect the mouse.</p></dialog>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

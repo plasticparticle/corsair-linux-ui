@@ -1,0 +1,214 @@
+.action-select-box {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  grid-template-rows: 42px auto;
+  border: 1px solid var(--line2);
+  background: linear-gradient(120deg, #0b0f10, #13191a);
+  transition: border-color .18s, box-shadow .18s;
+}
+
+.action-select-box:focus-within {
+  border-color: var(--mint);
+  box-shadow: 0 0 0 1px #38d9c522, 0 10px 30px #0005;
+}
+
+.action-select-index {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+  color: var(--mint);
+  font: 13px var(--mono);
+}
+
+.action-select-box .select-wrap::after {
+  top: 13px;
+  right: 15px;
+}
+
+.action-select-box .select-wrap select {
+  height: 42px;
+  border: 0;
+  background: transparent;
+  padding: 0 40px 0 13px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.action-select-box > small {
+  grid-column: 2;
+  padding: 0 13px 11px;
+  color: #687270;
+  font: 8px/1.4 var(--mono);
+}
+
+.value-editor select {
+  appearance: none;
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--line2);
+  background: #0d1112;
+  color: var(--ink);
+  padding: 0 12px;
+  outline: none;
+  font: 11px var(--mono);
+}
+
+.value-editor select:focus {
+  border-color: var(--mint);
+  box-shadow: inset 3px 0 var(--mint);
+}
+
+.value-select-wrap::after { top: 11px; }
+
+.value-editor optgroup {
+  color: var(--mint);
+  background: #101516;
+}
+
+.value-editor option {
+  color: var(--ink);
+  background: #101516;
+}
+
+.shortcut-editor {
+  margin-top: 17px;
+  border: 1px solid #3e4a49;
+  background: radial-gradient(circle at 90% 0, #1a302d 0, transparent 42%), #0b0f10;
+  animation: recorder-in .2s ease-out;
+  overflow: hidden;
+}
+
+.shortcut-editor[hidden],
+.value-editor[hidden] {
+  display: none !important;
+}
+
+@keyframes recorder-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: none; }
+}
+
+.shortcut-recorder-head {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 8px 13px;
+  border-bottom: 1px solid var(--line);
+}
+
+.shortcut-recorder-head > div > span {
+  display: block;
+  color: var(--mint);
+  font: 8px var(--mono);
+  letter-spacing: .13em;
+}
+
+.shortcut-recorder-head > div > small {
+  display: block;
+  margin-top: 4px;
+  color: var(--dim);
+  font: 7px var(--mono);
+}
+
+.shortcut-recorder-head button {
+  height: 29px;
+  border: 1px solid var(--mint);
+  background: #13201f;
+  color: var(--mint);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  font: 7px var(--mono);
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+
+.shortcut-recorder-head button i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 7px var(--mint);
+}
+
+.shortcut-recorder-head button:hover { background: #1b3531; }
+
+.shortcut-recorder-head button.recording {
+  border-color: var(--orange);
+  color: var(--orange);
+  background: #241710;
+}
+
+.shortcut-recorder-head button.recording i {
+  background: var(--orange);
+  box-shadow: 0 0 8px var(--orange);
+  animation: record-blink .75s steps(1) infinite;
+}
+
+@keyframes record-blink { 50% { opacity: .15; } }
+
+.shortcut-preview {
+  min-height: 70px;
+  margin: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px dashed #35413f;
+  background: #101617;
+  outline: none;
+  cursor: pointer;
+  transition: .18s;
+}
+
+.shortcut-preview:hover,
+.shortcut-preview:focus {
+  border-color: #55706b;
+  background: #121c1a;
+}
+
+.shortcut-preview.recording {
+  border-style: solid;
+  border-color: var(--orange);
+  box-shadow: inset 0 0 24px #ff6b350d;
+}
+
+.shortcut-preview kbd {
+  min-width: 35px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  border: 1px solid #50605d;
+  border-bottom: 3px solid #293330;
+  background: linear-gradient(#202827, #151b1b);
+  color: #edf4f1;
+  font: 700 9px var(--mono);
+  letter-spacing: .05em;
+  box-shadow: 0 5px 12px #0007;
+}
+
+.shortcut-preview b {
+  color: #52605d;
+  font: 11px var(--mono);
+}
+
+.shortcut-preview .shortcut-idle {
+  color: #53605e;
+  font: 8px var(--mono);
+  letter-spacing: .12em;
+}
+
+.shortcut-preview.recording .shortcut-idle { color: var(--orange); }
+
+.shortcut-readable {
+  margin: 0;
+  padding: 0 13px 13px;
+  color: #899693;
+  font: 8px/1.5 var(--mono);
+}

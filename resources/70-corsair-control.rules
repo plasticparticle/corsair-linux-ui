@@ -1,0 +1,6 @@
+# Corsair Control: grant the active local session access to Corsair HID input.
+SUBSYSTEM=="input", KERNEL=="event*", ATTRS{idVendor}=="1b1c", TAG+="uaccess"
+SUBSYSTEM=="hidraw", KERNEL=="hidraw*", ATTRS{idVendor}=="1b1c", TAG+="uaccess"
+
+# The virtual input device used for safe event relay and shortcut injection.
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"
