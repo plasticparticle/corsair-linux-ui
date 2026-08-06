@@ -100,7 +100,7 @@ fn learn_button(button_id: String, state: tauri::State<AppState>) {
 fn rescan_devices(state: tauri::State<AppState>) -> Vec<Device> {
     let devices = model::discover_devices();
     *state.devices.lock().unwrap() = devices.clone();
-    *state.rgb.lock().unwrap() = RgbAdapter::probe(&devices);
+    *state.rgb.lock().unwrap() = RgbAdapter::probe(&devices, state.driver.bragi_control());
     devices
 }
 
@@ -159,6 +159,7 @@ fn main() {
         .collect();
     let (physical_tx, physical_rx) = mpsc::channel();
     let driver = InputDriver::start(nodes, config.clone(), physical_tx);
+    let bragi_rgb = driver.bragi_control();
     let rgb_devices = devices.clone();
     let rgb = RgbAdapter::pending(&devices);
     let state = AppState {
@@ -193,12 +194,17 @@ fn main() {
             let app_handle = app.handle().clone();
             thread::spawn(move || {
                 for input in physical_rx {
+                    if input.pressed {
+                        if let Ok(rgb) = app_handle.state::<AppState>().rgb.lock() {
+                            rgb.physical_input();
+                        }
+                    }
                     let _ = app_handle.emit("physical-input", input);
                 }
             });
             let rgb_handle = app.handle().clone();
             thread::spawn(move || {
-                let adapter = RgbAdapter::probe(&rgb_devices);
+                let adapter = RgbAdapter::probe(&rgb_devices, bragi_rgb);
                 *rgb_handle.state::<AppState>().rgb.lock().unwrap() = adapter;
             });
             Ok(())

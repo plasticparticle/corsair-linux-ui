@@ -30,8 +30,8 @@ The app was built around a real **Corsair Ironclaw Wireless SE**, currently iden
 | Slipstream discovery | ✅ | Recognizes verified receiver IDs when the dongle is present |
 | Tray/panel mode | ✅ | Close the window without stopping mappings; restore it from the custom tray icon |
 | RGB effect editor | ✅ | Preview static, gradient, breathing, spectrum, wave, reactive, and off patterns across the three real lighting zones |
-| Hardware RGB apply | 🟢 | Uses OpenRGB when it exposes the connected mouse as an Ironclaw controller |
-| RGB and onboard DPI on `2b32` | 🔒 | Hardware writes stay locked until OpenRGB or a verified Wireless SE protocol exposes this revision |
+| Hardware RGB apply | ✅ | Uses the native six-LED Bragi channel on `2b32`, with OpenRGB as a fallback for supported models |
+| Native RGB on `2b32` | ✅ | Static, gradient, breathing, spectrum, wave, reactive, and off effects over USB |
 
 ## Meet the control room
 
@@ -54,7 +54,8 @@ flowchart LR
     D --> E[Desktop / game / app]
     B -->|live press events| F[Native Tauri UI]
     F -->|saved profile| C
-    F -. verified devices only .-> G[OpenRGB]
+    F -->|negotiated Bragi RGB| G[Ironclaw lighting]
+    F -. supported fallback .-> H[OpenRGB]
 ```
 
 The input engine grabs the Corsair event nodes, processes only the configured controls, and relays everything through a virtual Linux input device. Unassigned events pass through unchanged. If the application exits, the kernel releases the grabs automatically—your mouse does not become a stylish paperweight.
@@ -73,7 +74,7 @@ sudo apt install build-essential curl file \
   libayatana-appindicator3-dev librsvg2-dev
 ```
 
-You will also want OpenRGB if you have one of the verified original Ironclaw revisions:
+OpenRGB is optional. Install it only when using an older supported Ironclaw revision that does not expose the native `2b32` Bragi backend:
 
 ```bash
 sudo apt install openrgb
@@ -139,14 +140,14 @@ Product: 2b32
 Name:    CORSAIR IRONCLAW WIRELESS SE Gaming Mouse
 ```
 
-That product ID is newer than the Ironclaw definitions currently used by ckb-next and OpenRGB. Corsair's vendor protocol is not interchangeable across every firmware revision, so this project refuses to send packets copied from an older mouse and simply hope for the best.
+That product ID is newer than the Ironclaw definitions currently used by ckb-next and OpenRGB. It does, however, expose the same negotiated Bragi lighting resource family used by maintained Corsair drivers. Corsair Control requires the exact `2b32` command descriptor and a successful lighting-resource open before enabling the known six-LED payload; firmware that supports the optional size query is checked as well.
 
 For `2b32`, today:
 
 - Linux input, all seven extra controls, remapping, shortcuts, live button feedback, and profiles work. The driver restores hardware mode when it exits.
-- RGB hardware writes, physical sensor DPI, polling-rate writes, firmware operations, and receiver pairing remain capability-locked.
+- Six-LED RGB hardware writes work over USB. Physical sensor DPI, polling-rate writes, firmware operations, and receiver pairing remain capability-locked.
 - The UI lets you design, animate, and save static, gradient, breathing, spectrum, wave, reactive, and off lighting profiles for the logo, wheel, and front grille.
-- **Apply to Device** unlocks automatically when OpenRGB identifies a compatible Ironclaw controller; previews and saved profiles never depend on hardware support.
+- **Apply to Device** unlocks after the native lighting resource passes negotiation. The Rust lighting engine drives breathing, spectrum, wave, and reactive effects; OpenRGB remains an automatic fallback for compatible older models.
 
 Bluetooth generally exposes standard HID input but may not expose Corsair's configuration channel. Slipstream capabilities depend on the receiver PID and firmware. Switch transports, open **Connections**, and hit **Rescan**.
 

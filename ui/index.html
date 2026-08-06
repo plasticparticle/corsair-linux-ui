@@ -174,7 +174,7 @@
 
         <section class="panel" id="panel-lighting">
           <div class="panel-heading"><div><span class="eyebrow">THREE-ZONE LIGHT ENGINE</span><h1>Lighting</h1></div><div class="heading-actions"><button class="secondary-button save-alias">SAVE LIGHTING</button><button class="primary-button" id="apply-lighting">APPLY TO DEVICE</button></div></div>
-          <div class="capability-banner" id="rgb-banner"><span>!</span><div><b>PROTOCOL CHECK IN PROGRESS</b><p>Lighting controls unlock only when the connected firmware has a verified backend.</p></div></div>
+          <div class="capability-banner" id="rgb-banner"><span>!</span><div><b>LIGHTING CHECK IN PROGRESS</b><p>Negotiating the mouse's native six-LED Bragi lighting resource.</p></div></div>
           <div class="lighting-grid">
             <div class="light-preview">
               <div class="light-orbit one"></div><div class="light-orbit two"></div>
@@ -228,7 +228,7 @@
             <article class="connection-card"><span class="connection-number">02</span><div class="connection-icon">◈</div><span class="status-pill">NOT DETECTED</span><h2>Slipstream 2.4</h2><p>Requires the Corsair wireless receiver. Switch the mouse before rescanning.</p><dl><div><dt>LATENCY</dt><dd>SUB-1 MS</dd></div><div><dt>CONFIG</dt><dd>RECEIVER DEPENDENT</dd></div></dl></article>
             <article class="connection-card"><span class="connection-number">03</span><div class="connection-icon">ᛒ</div><span class="status-pill">NOT DETECTED</span><h2>Bluetooth</h2><p>Standard HID input works; vendor lighting reports may not be exposed.</p><dl><div><dt>POWER</dt><dd>LOW ENERGY</dd></div><div><dt>CONFIG</dt><dd>SOFTWARE PROFILE</dd></div></dl></article>
           </div>
-          <div class="protocol-note"><span>ENGINEERING NOTE / 2B32</span><p>This SE revision is newer than the published community driver tables. Button remapping uses Linux evdev/uinput and is transport-independent. RGB will activate automatically when a tested protocol adapter is available.</p></div>
+          <div class="protocol-note"><span>ENGINEERING NOTE / 2B32</span><p>USB exposes Corsair's Bragi command channel for buttons and six-LED RGB control. The driver requires the exact command descriptor and a successful lighting-resource negotiation before enabling writes; Bluetooth remains input-only unless its vendor channel is exposed.</p></div>
         </section>
       </main>
     </div>

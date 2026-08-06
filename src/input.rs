@@ -185,7 +185,7 @@ pub struct InputDriver {
     status: Arc<Mutex<DriverStatus>>,
     activity: Arc<Mutex<BTreeMap<String, Option<Instant>>>>,
     stop: Arc<AtomicBool>,
-    _bragi_control: Option<BragiControl>,
+    bragi_control: Option<Arc<Mutex<BragiControl>>>,
 }
 
 #[derive(Clone)]
@@ -467,7 +467,7 @@ impl InputDriver {
                 status,
                 activity,
                 stop,
-                _bragi_control: None,
+                bragi_control: None,
             };
         }
         let output = match UInput::new() {
@@ -481,12 +481,12 @@ impl InputDriver {
                     status,
                     activity,
                     stop,
-                    _bragi_control: None,
+                    bragi_control: None,
                 };
             }
         };
         let bragi_control = match BragiControl::activate() {
-            Ok(control) => Some(control),
+            Ok(control) => Some(Arc::new(Mutex::new(control))),
             Err(error) if error.kind() == io::ErrorKind::NotFound => None,
             Err(error) => {
                 let mut current = status.lock().unwrap();
@@ -514,7 +514,12 @@ impl InputDriver {
             thread::spawn(move || read_device(&node, context));
         }
         if let Some(control) = &bragi_control {
-            let node = control.input_path().to_string_lossy().into_owned();
+            let node = control
+                .lock()
+                .unwrap()
+                .input_path()
+                .to_string_lossy()
+                .into_owned();
             status.lock().unwrap().input_nodes.push(node.clone());
             started += 1;
             let context = ReaderContext {
@@ -537,7 +542,7 @@ impl InputDriver {
             status,
             activity,
             stop,
-            _bragi_control: bragi_control,
+            bragi_control,
         }
     }
 
@@ -560,6 +565,10 @@ impl InputDriver {
         let mut status = self.status.lock().unwrap();
         status.learn_button = button_id;
         status.last_capture = None;
+    }
+
+    pub fn bragi_control(&self) -> Option<Arc<Mutex<BragiControl>>> {
+        self.bragi_control.clone()
     }
 }
 

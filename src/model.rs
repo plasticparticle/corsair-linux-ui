@@ -42,9 +42,9 @@ pub fn discover_devices_at(usb_root: &Path, input_root: &Path) -> Vec<Device> {
             "1b4c" => ("Ironclaw RGB Wireless", "usb", true),
             "1b66" => ("Ironclaw RGB Wireless receiver", "slipstream", true),
             "1b5d" => ("Ironclaw RGB", "usb", true),
-            // Observed on the connected Ironclaw Wireless SE. This PID is not
-            // in ckb-next or OpenRGB as of 2026-08, so raw RGB is guarded.
-            "2b32" => ("Ironclaw Wireless SE", "usb", false),
+            // The connected Wireless SE uses Corsair's Bragi command channel.
+            // Features are still negotiated at runtime before hardware writes.
+            "2b32" => ("Ironclaw Wireless SE", "usb", true),
             _ => ("Corsair USB device", "usb", false),
         };
         let serial = {
