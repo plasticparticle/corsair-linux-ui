@@ -6,6 +6,8 @@
   **Your mouse. Your shortcuts. Your Linux box.**
 
   A native, chromeless control room for the Corsair Ironclaw—and a growing collection of other Corsair input devices.
+
+  **Unofficial, unaffiliated third-party project. Not endorsed, sponsored, supported, or approved by Corsair.**
 </div>
 
 ---
@@ -268,3 +270,5 @@ The uninstaller removes the binary, udev rule, desktop entry, and installed icon
 Corsair Control is available under **GPL-3.0-or-later**.
 
 The OpenRGB adapter invokes OpenRGB as a separate installed application; no OpenRGB protocol source is copied into this repository.
+
+Corsair, Ironclaw, and related product names and marks belong to their respective owners. Their use here identifies compatible hardware and does not imply any affiliation with or endorsement by Corsair.
