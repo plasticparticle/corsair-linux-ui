@@ -1,4 +1,4 @@
-name: Build Debian release
+name: Build Linux release packages
 
 on:
   release:
@@ -8,8 +8,8 @@ permissions:
   contents: write
 
 jobs:
-  debian-package:
-    name: Build and attach .deb
+  linux-packages:
+    name: Build and attach .deb and .rpm
     # Build on the oldest supported GitHub Ubuntu image to keep the resulting
     # glibc requirement friendly to Ubuntu 22.04 and Linux Mint users.
     runs-on: ubuntu-22.04
@@ -28,7 +28,8 @@ jobs:
             libayatana-appindicator3-dev \
             libgtk-3-dev \
             librsvg2-dev \
-            libwebkit2gtk-4.1-dev
+            libwebkit2gtk-4.1-dev \
+            rpm
 
       - name: Test release source
         run: cargo test --locked
@@ -36,7 +37,17 @@ jobs:
       - name: Build Debian package
         run: ./scripts/build-deb.sh "${{ github.event.release.tag_name }}"
 
-      - name: Upload package to the GitHub release
+      - name: Build RPM package
+        run: ./scripts/build-rpm.sh "${{ github.event.release.tag_name }}"
+
+      - name: Write SHA-256 checksums
+        run: |
+          cd dist
+          sha256sum ./*.deb ./*.rpm > SHA256SUMS
+
+      - name: Upload packages to the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.deb --clobber
+        run: >-
+          gh release upload "${{ github.event.release.tag_name }}"
+          dist/*.deb dist/*.rpm dist/SHA256SUMS --clobber
