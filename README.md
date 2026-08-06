@@ -180,6 +180,8 @@ Clicking the application launcher or taskbar icon while Corsair Control is alrea
 
 The same mint-and-orange mouse icon is used in the system tray, taskbar, and desktop application menu, with dedicated sizes so it stays sharp instead of becoming a tiny turquoise smudge.
 
+Open **Connections** and enable **Start on login** to launch Corsair Control quietly in the system tray with your Linux desktop session. The checkbox uses the standard freedesktop autostart file at `~/.config/autostart/corsair-control.desktop` (or your `XDG_CONFIG_HOME`).
+
 ## About the `2b32`-shaped elephant in the room
 
 The Ironclaw Wireless SE connected during development reports:

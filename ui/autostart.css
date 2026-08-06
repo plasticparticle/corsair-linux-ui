@@ -1,0 +1,84 @@
+.connection-intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 20px;
+}
+
+.startup-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.startup-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.startup-switch {
+  width: 45px;
+  height: 22px;
+  padding: 3px;
+  border: 1px solid var(--line2);
+  background: #0b0f10;
+  transition: .2s;
+}
+
+.startup-switch i {
+  display: block;
+  width: 14px;
+  height: 14px;
+  background: #596260;
+  transition: .22s cubic-bezier(.2, .8, .2, 1);
+}
+
+.startup-label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 84px;
+}
+
+.connection-intro .startup-label b {
+  font: 700 8px var(--mono);
+  letter-spacing: .08em;
+}
+
+.startup-label small {
+  color: var(--dim);
+  font: 7px var(--mono);
+  letter-spacing: .1em;
+}
+
+.startup-toggle input:checked + .startup-switch {
+  border-color: var(--mint);
+  background: #15302c;
+  box-shadow: 0 0 14px #38d9c51c;
+}
+
+.startup-toggle input:checked + .startup-switch i {
+  background: var(--mint);
+  box-shadow: 0 0 8px #38d9c5aa;
+  transform: translateX(23px);
+}
+
+.startup-toggle input:checked ~ .startup-label small {
+  color: var(--mint);
+}
+
+.startup-toggle input:focus-visible + .startup-switch {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
+}
+
+.startup-toggle input:disabled + .startup-switch {
+  opacity: .42;
+}
+
+.startup-toggle:has(input:disabled) {
+  cursor: wait;
+}
