@@ -42,9 +42,9 @@ pub fn discover_devices_at(usb_root: &Path, input_root: &Path) -> Vec<Device> {
             "1b4c" => ("Ironclaw RGB Wireless", "usb", true),
             "1b66" => ("Ironclaw RGB Wireless receiver", "slipstream", true),
             "1b5d" => ("Ironclaw RGB", "usb", true),
-            // Observed on the connected Ironclaw Wireless SE. This PID is not
-            // in ckb-next or OpenRGB as of 2026-08, so raw RGB is guarded.
-            "2b32" => ("Ironclaw Wireless SE", "usb", false),
+            // The connected Wireless SE uses Corsair's Bragi command channel.
+            // Features are still negotiated at runtime before hardware writes.
+            "2b32" => ("Ironclaw Wireless SE", "usb", true),
             _ => ("Corsair USB device", "usb", false),
         };
         let serial = {
@@ -183,6 +183,37 @@ pub fn apply_device_defaults(config: &mut Config, devices: &[Device]) -> bool {
                 changed = true;
             }
         }
+
+        // Early builds assigned the centre P+/P- controls to profiles and the
+        // side D+/D- controls to DPI. Preserve custom mappings, but migrate
+        // that exact legacy default to P = DPI and D = Page Up/Page Down.
+        let legacy_controls = [
+            ("dpiup", "dpi", "next"),
+            ("dpidn", "dpi", "previous"),
+            ("profup", "profile", "next"),
+            ("profdn", "profile", "previous"),
+        ];
+        let uses_legacy_controls = legacy_controls.iter().all(|(id, action, value)| {
+            profile
+                .mappings
+                .get(*id)
+                .is_some_and(|mapping| mapping.action == *action && mapping.value == *value)
+        });
+        if uses_legacy_controls {
+            profile
+                .mappings
+                .insert("profup".into(), mapping("dpi", "next", "Next DPI"));
+            profile
+                .mappings
+                .insert("profdn".into(), mapping("dpi", "previous", "Previous DPI"));
+            profile
+                .mappings
+                .insert("dpiup".into(), mapping("key", "PAGEUP", "Page Up"));
+            profile
+                .mappings
+                .insert("dpidn".into(), mapping("key", "PAGEDOWN", "Page Down"));
+            changed = true;
+        }
     }
     changed
 }
@@ -265,22 +296,22 @@ pub fn buttons() -> Vec<ButtonDefinition> {
         },
         ButtonDefinition {
             id: "dpiup",
-            name: "DPI up",
+            name: "D+ · Page up",
             source: "LEARN",
         },
         ButtonDefinition {
             id: "dpidn",
-            name: "DPI down",
+            name: "D− · Page down",
             source: "LEARN",
         },
         ButtonDefinition {
             id: "profup",
-            name: "Profile up",
+            name: "P+ · DPI up",
             source: "LEARN",
         },
         ButtonDefinition {
             id: "profdn",
-            name: "Profile down",
+            name: "P− · DPI down",
             source: "LEARN",
         },
         ButtonDefinition {
@@ -332,13 +363,10 @@ impl Default for Config {
                 "wheeldn".into(),
                 mapping("passthrough", "REL_WHEEL_DOWN", "Scroll down"),
             ),
-            ("dpiup".into(), mapping("dpi", "next", "Next DPI")),
-            ("dpidn".into(), mapping("dpi", "previous", "Previous DPI")),
-            ("profup".into(), mapping("profile", "next", "Next profile")),
-            (
-                "profdn".into(),
-                mapping("profile", "previous", "Previous profile"),
-            ),
+            ("dpiup".into(), mapping("key", "PAGEUP", "Page Up")),
+            ("dpidn".into(), mapping("key", "PAGEDOWN", "Page Down")),
+            ("profup".into(), mapping("dpi", "next", "Next DPI")),
+            ("profdn".into(), mapping("dpi", "previous", "Previous DPI")),
             (
                 "forward".into(),
                 mapping("passthrough", "BTN_FORWARD", "Forward"),
@@ -510,5 +538,59 @@ mod tests {
         assert_eq!(sources["option"], "BRAGI_BUTTON:10");
         assert_eq!(sources["dpiup"], "BRAGI_BUTTON:6");
         assert_eq!(sources["profup"], "BRAGI_BUTTON:8");
+        let mappings = &config.active().mappings;
+        assert_eq!(mappings["profup"].action, "dpi");
+        assert_eq!(mappings["dpiup"].action, "key");
+        assert_eq!(mappings["dpiup"].value, "PAGEUP");
+    }
+
+    #[test]
+    fn wireless_se_preserves_custom_control_actions() {
+        let mut config = Config::default();
+        config.profiles[0].mappings.insert(
+            "profup".into(),
+            mapping("shortcut", "CTRL+P", "Custom shortcut"),
+        );
+        let device = Device {
+            id: "usb-1b1c-2b32-test".into(),
+            vendor_id: "1b1c".into(),
+            product_id: "2b32".into(),
+            name: "Ironclaw Wireless SE".into(),
+            serial: "test".into(),
+            transport: "usb".into(),
+            connected: true,
+            protocol_supported: false,
+            input_nodes: vec![],
+        };
+        apply_device_defaults(&mut config, &[device]);
+        assert_eq!(config.active().mappings["profup"].action, "shortcut");
+    }
+
+    #[test]
+    fn wireless_se_migrates_legacy_p_and_d_actions() {
+        let mut config = Config::default();
+        let mappings = &mut config.profiles[0].mappings;
+        mappings.insert("dpiup".into(), mapping("dpi", "next", "Next DPI"));
+        mappings.insert("dpidn".into(), mapping("dpi", "previous", "Previous DPI"));
+        mappings.insert("profup".into(), mapping("profile", "next", "Next profile"));
+        mappings.insert(
+            "profdn".into(),
+            mapping("profile", "previous", "Previous profile"),
+        );
+        let device = Device {
+            id: "usb-1b1c-2b32-test".into(),
+            vendor_id: "1b1c".into(),
+            product_id: "2b32".into(),
+            name: "Ironclaw Wireless SE".into(),
+            serial: "test".into(),
+            transport: "usb".into(),
+            connected: true,
+            protocol_supported: false,
+            input_nodes: vec![],
+        };
+        assert!(apply_device_defaults(&mut config, &[device]));
+        assert_eq!(config.active().mappings["profup"].action, "dpi");
+        assert_eq!(config.active().mappings["dpiup"].action, "key");
+        assert_eq!(config.active().mappings["dpiup"].value, "PAGEUP");
     }
 }

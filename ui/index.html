@@ -76,53 +76,54 @@
               <div class="axis axis-x">X / 00—52</div><div class="axis axis-y">Y / 00—67</div>
               <svg class="mouse-blueprint" viewBox="0 0 560 720" role="img" aria-label="Interactive Corsair Ironclaw Wireless SE button map">
                 <defs>
-                  <linearGradient id="se-shell" x1=".15" y1="0" x2=".8" y2="1"><stop stop-color="#343a3b"/><stop offset=".45" stop-color="#1d2223"/><stop offset="1" stop-color="#101415"/></linearGradient>
-                  <linearGradient id="se-click" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#353b3c"/><stop offset="1" stop-color="#181d1e"/></linearGradient>
-                  <linearGradient id="se-rail" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#090c0d"/><stop offset=".5" stop-color="#1a2021"/><stop offset="1" stop-color="#080b0c"/></linearGradient>
-                  <pattern id="se-grip" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="14" height="14" fill="#121718"/><path d="M0 0v14M7 0v14" stroke="#303738" stroke-width="3"/></pattern>
-                  <filter id="se-shadow" x="-30%" y="-20%" width="160%" height="170%"><feDropShadow dx="0" dy="22" stdDeviation="20" flood-opacity=".7"/></filter>
+                  <linearGradient id="se-shell" x1=".08" y1="0" x2=".88" y2="1"><stop stop-color="#34393a"/><stop offset=".36" stop-color="#232829"/><stop offset=".78" stop-color="#171b1c"/><stop offset="1" stop-color="#0d1011"/></linearGradient>
+                  <linearGradient id="se-click" x1="0" y1="0" x2="1" y2=".85"><stop stop-color="#3b4041"/><stop offset=".22" stop-color="#282d2e"/><stop offset="1" stop-color="#161a1b"/></linearGradient>
+                  <linearGradient id="se-side" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4a5051"/><stop offset=".45" stop-color="#262b2c"/><stop offset="1" stop-color="#111516"/></linearGradient>
+                  <linearGradient id="se-rail" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#07090a"/><stop offset=".48" stop-color="#202627"/><stop offset="1" stop-color="#07090a"/></linearGradient>
+                  <pattern id="se-grip" width="11" height="11" patternUnits="userSpaceOnUse"><rect width="11" height="11" fill="#121617"/><path d="M-3 3 3-3M0 11 11 0M8 14 14 8M-3 8 3 14M0 0l11 11M8-3l6 6" stroke="#363c3d" stroke-width="1.7"/></pattern>
+                  <pattern id="se-button-mesh" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="9" height="9" fill="#252a2b"/><path d="M0 0v9M4.5 0v9" stroke="#5a6263" stroke-width="1.4"/></pattern>
+                  <filter id="se-shadow" x="-35%" y="-25%" width="170%" height="180%"><feDropShadow dx="0" dy="24" stdDeviation="18" flood-opacity=".78"/></filter>
                   <filter id="se-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                 </defs>
 
                 <g class="ironclaw-render" filter="url(#se-shadow)">
-                  <path class="se-silhouette" d="M278 24C187 18 119 54 88 126 68 173 66 248 61 331L49 489C40 615 126 684 276 695 420 687 501 615 491 487L480 233C475 119 419 43 331 25Z"/>
-                  <path class="se-palm" d="M139 286C166 253 214 236 280 236 348 236 405 258 443 300l28 194c8 101-64 162-194 174-128-10-202-72-195-174l20-162Z"/>
-                  <path class="se-grip" d="M70 332c17-31 42-55 75-70l28 38-19 292c-55-25-80-67-75-119Z"/>
-                  <path class="se-right-skirt" d="M442 292c26 37 38 78 39 125l9 75c6 72-31 124-91 153l-18-345Z"/>
-                  <path class="se-left-plate" d="M91 130C117 64 175 29 264 27l-8 211c-66 0-119 17-164 50L70 238c2-42 8-78 21-108Z"/>
-                  <path class="se-right-plate" d="M314 28c91 12 145 80 160 195l-10 67c-45-34-96-52-161-53l2-207Z"/>
-                  <path class="se-center-rail" d="M261 35h44l-2 229-20 68-25-68Z"/>
-                  <path class="se-thumb-shelf" d="M87 250c24-18 48-29 73-32l39 45-21 79-35-2-15 47-56-16Z"/>
+                  <path class="se-silhouette" d="M260 14C194 21 145 48 116 94 90 135 80 191 75 269L55 430C41 530 77 612 162 668 198 692 239 706 281 708 363 704 430 657 468 584 491 540 500 491 493 420l-12-225C475 103 424 39 338 15l-19 6-1 35h-55V22Z"/>
+                  <path class="se-palm" d="M118 185c38-29 91-43 159-43 74 0 133 17 176 51l23 228c7 68-1 119-25 163-35 64-96 103-170 108-82-6-145-48-179-113-23-44-31-93-23-150l18-158Z"/>
+                  <path class="se-grip" d="M77 358c18-30 44-50 78-60l26 47-25 279c-62-37-91-97-81-180Z"/>
+                  <path class="se-right-skirt" d="M429 168c30 31 47 72 49 126l15 127c7 70-1 120-25 163-15 28-35 52-60 70l-29-84 31-381Z"/>
+                  <path class="se-left-plate" d="M123 93c29-45 73-69 137-77l3 44-5 197c-25 35-65 59-119 70l-42-47 7-119Z"/>
+                  <path class="se-right-plate" d="M319 21l20-5c80 24 128 85 137 176l8 139c-23 11-50 17-80 17-38-26-66-58-85-96Z"/>
+                  <path class="se-center-rail" d="M263 55h55l1 198-21 59-25 58-14-110Z"/>
+                  <path class="se-thumb-shelf" d="M75 220l29-34 35-1 18 122-22 33-49-10-16-45Z"/>
+                  <path class="se-side-recess" d="M74 334c20-15 44-19 70-11l18 40-16 168-51 1-32-83Z"/>
 
                   <g class="se-wheel-art">
-                    <rect class="se-wheel-light" x="262" y="77" width="42" height="111" rx="20"/>
-                    <rect class="se-wheel" x="267" y="69" width="32" height="126" rx="16"/>
-                    <path d="M269 87l13-8 15 8m-28 18 13-8 15 8m-28 18 13-8 15 8m-28 18 13-8 15 8m-28 18 13-8 15 8m-27 18 12-7 14 7"/>
+                    <rect class="se-wheel-light" x="266" y="65" width="50" height="135" rx="23"/>
+                    <rect class="se-wheel" x="273" y="56" width="37" height="150" rx="18"/>
+                    <path d="M276 76l15-9 16 9m-31 20 15-9 16 9m-31 20 15-9 16 9m-31 20 15-9 16 9m-31 20 15-9 16 9m-31 20 15-9 16 9"/>
                   </g>
-                  <rect class="se-center-button" x="261" y="209" width="43" height="42" rx="7"/>
-                  <rect class="se-center-button" x="260" y="258" width="45" height="43" rx="7"/>
-                  <path class="se-channel" d="M282 304v58"/>
+                  <rect class="se-center-button" x="269" y="225" width="46" height="61" rx="5"/>
+                  <rect class="se-center-button" x="268" y="294" width="48" height="68" rx="5"/>
+                  <path class="se-channel" d="M292 365v69"/>
 
-                  <path class="se-front-grill" d="M75 165l28-56 21 14-22 81Z"/>
-                  <path class="se-front-grill" d="M459 148l13 67-13 14-16-96Z"/>
-                  <g class="se-front-rgb" filter="url(#se-glow)"><path d="M82 169l8-21 5 3-7 22Zm11 12 8-24 5 3-7 25Zm357-20 5-3 5 25-5 5Z"/></g>
-                  <path class="se-logo-rgb" filter="url(#se-glow)" d="M240 543c12-20 17-34 11-48 15 5 25 14 30 28-3-19-11-34-23-46 26 8 43 25 50 49-4-24-13-42-27-56 36 10 59 34 64 72-35-12-69-11-105 1Z"/>
-                  <path class="se-palm-seam" d="M159 599c73 48 155 52 239 9"/>
+                  <path class="se-front-edge" d="M117 94c-14 21-24 47-30 78M339 16c38 12 69 34 91 65"/>
+                  <path class="se-logo-rgb" filter="url(#se-glow)" d="M225 583c14-18 20-33 16-47 14 6 24 15 29 28-1-17-8-32-20-45 24 9 40 26 45 48-2-22-11-41-25-56 34 11 55 37 58 72-35-9-70-9-103 0Z"/>
+                  <path class="se-palm-seam" d="M158 623c69 51 151 60 235 25M404 348c-2 86-9 160-23 222"/>
                 </g>
 
                 <g class="hotspots se-hotspots">
-                  <g tabindex="0" role="button" data-button="mouse1" aria-label="Left click"><path d="M92 132C118 67 176 31 258 30l-6 201c-62 2-112 18-157 49l-20-44c2-41 7-76 17-104Z"/><text x="172" y="151">01</text></g>
-                  <g tabindex="0" role="button" data-button="mouse2" aria-label="Right click"><path d="M311 31c86 14 137 79 157 190l-9 60c-43-31-92-48-151-50Z"/><text x="389" y="151">02</text></g>
-                  <g tabindex="0" role="button" data-button="wheelup" aria-label="Wheel up"><path d="M267 70h32v39h-32Z"/><text x="283" y="96">↑</text></g>
-                  <g tabindex="0" role="button" data-button="mouse3" aria-label="Wheel click"><path d="M267 109h32v43h-32Z"/><text x="283" y="136">03</text></g>
-                  <g tabindex="0" role="button" data-button="wheeldn" aria-label="Wheel down"><path d="M267 152h32v42h-32Z"/><text x="283" y="180">↓</text></g>
-                  <g tabindex="0" role="button" data-button="profup" aria-label="Profile up"><rect x="261" y="209" width="43" height="42" rx="7"/><text x="283" y="235">P+</text><rect class="hit-target" x="257" y="205" width="51" height="50" rx="9"/></g>
-                  <g tabindex="0" role="button" data-button="profdn" aria-label="Profile down"><rect x="260" y="258" width="45" height="43" rx="7"/><text x="283" y="285">P−</text><rect class="hit-target" x="256" y="254" width="53" height="51" rx="9"/></g>
-                  <g tabindex="0" role="button" data-button="dpiup" aria-label="DPI up"><path d="M92 104l37-17 17 54-45 24-20-15Z"/><text x="114" y="130">D+</text><path class="hit-target" d="M86 98l47-18 20 64-50 28-29-19Z"/></g>
-                  <g tabindex="0" role="button" data-button="dpidn" aria-label="DPI down"><path d="M100 166l46-20 18 53-54 27-21-16Z"/><text x="127" y="190">D−</text><path class="hit-target" d="M94 160l56-21 21 63-59 31-30-20Z"/></g>
-                  <g tabindex="0" role="button" data-button="forward" aria-label="Forward"><path d="M93 243l58-22 32 39-28 45-55 1-20-28Z"/><text x="128" y="271">F</text></g>
-                  <g tabindex="0" role="button" data-button="option" aria-label="Option"><path d="M86 310l69 3 17 37-27 36-67-12-13-29Z"/><text x="120" y="349">O</text><path class="hit-target" d="M80 304l79 3 20 44-31 42-76-14-14-34Z"/></g>
-                  <g tabindex="0" role="button" data-button="back" aria-label="Back"><path d="M76 383l68 15 9 42-29 31-58-23-8-33Z"/><text x="108" y="429">B</text></g>
+                  <g tabindex="0" role="button" data-button="mouse1" aria-label="Left click"><path d="M123 93c29-45 73-69 137-77l3 44-5 197c-25 35-65 59-119 70l-42-47 7-119Z"/><text x="184" y="168">01</text></g>
+                  <g tabindex="0" role="button" data-button="mouse2" aria-label="Right click"><path d="M319 21l20-5c80 24 128 85 137 176l8 139c-23 11-50 17-80 17-38-26-66-58-85-96Z"/><text x="402" y="168">02</text></g>
+                  <g tabindex="0" role="button" data-button="wheelup" aria-label="Wheel up"><path d="M273 57h37v48h-37Z"/><text x="292" y="88">↑</text></g>
+                  <g tabindex="0" role="button" data-button="mouse3" aria-label="Wheel click"><path d="M273 105h37v51h-37Z"/><text x="292" y="136">03</text></g>
+                  <g tabindex="0" role="button" data-button="wheeldn" aria-label="Wheel down"><path d="M273 156h37v49h-37Z"/><text x="292" y="187">↓</text></g>
+                  <g tabindex="0" role="button" data-button="profup" aria-label="P plus, DPI up"><rect x="269" y="225" width="46" height="61" rx="5"/><text x="292" y="261">P+</text><rect class="hit-target" x="264" y="220" width="56" height="71" rx="9"/></g>
+                  <g tabindex="0" role="button" data-button="profdn" aria-label="P minus, DPI down"><rect x="268" y="294" width="48" height="68" rx="5"/><text x="292" y="334">P−</text><rect class="hit-target" x="263" y="289" width="58" height="78" rx="9"/></g>
+                  <g class="mesh-control" tabindex="0" role="button" data-button="dpiup" aria-label="D plus, Page Up"><path d="M76 91l34-28 19 15-11 69-39 15-15-16Z"/><text x="95" y="119">D+</text><path class="hit-target" d="M70 85l40-31 27 20-13 79-47 18-21-21Z"/></g>
+                  <g class="mesh-control" tabindex="0" role="button" data-button="dpidn" aria-label="D minus, Page Down"><path d="M77 168l41-16-2 69-39 20-15-20Z"/><text x="93" y="200">D−</text><path class="hit-target" d="M71 162l54-20-3 85-47 24-22-26Z"/></g>
+                  <g tabindex="0" role="button" data-button="forward" aria-label="Forward"><path d="M75 238l38-15 20 12 3 70-27 28-34-11-11-33Z"/><text x="101" y="280">F</text></g>
+                  <g class="option-control" tabindex="0" role="button" data-button="option" aria-label="Option"><path d="M84 324l38-15 28 17 7 76-22 24-47-15-14-57Z"/><text x="115" y="373">O</text><path class="hit-target" d="M78 317l45-17 35 21 8 85-28 30-57-19-16-62Z"/></g>
+                  <g tabindex="0" role="button" data-button="back" aria-label="Back"><path d="M73 423l50 17 21 43-7 52-38 8-32-38-10-48Z"/><text x="101" y="487">B</text></g>
                 </g>
               </svg>
               <div class="stage-note" id="physical-status"><span>PHYSICAL INPUT / READY</span><b>Interactive hardware map</b></div>
@@ -174,7 +175,7 @@
 
         <section class="panel" id="panel-lighting">
           <div class="panel-heading"><div><span class="eyebrow">THREE-ZONE LIGHT ENGINE</span><h1>Lighting</h1></div><div class="heading-actions"><button class="secondary-button save-alias">SAVE LIGHTING</button><button class="primary-button" id="apply-lighting">APPLY TO DEVICE</button></div></div>
-          <div class="capability-banner" id="rgb-banner"><span>!</span><div><b>PROTOCOL CHECK IN PROGRESS</b><p>Lighting controls unlock only when the connected firmware has a verified backend.</p></div></div>
+          <div class="capability-banner" id="rgb-banner"><span>!</span><div><b>LIGHTING CHECK IN PROGRESS</b><p>Negotiating the mouse's native six-LED Bragi lighting resource.</p></div></div>
           <div class="lighting-grid">
             <div class="light-preview">
               <div class="light-orbit one"></div><div class="light-orbit two"></div>
@@ -214,7 +215,7 @@
         <section class="panel" id="panel-performance">
           <div class="panel-heading"><div><span class="eyebrow">SENSOR / REPORTING</span><h1>Performance</h1></div><button class="primary-button save-alias">SAVE TO PROFILE</button></div>
           <div class="performance-grid">
-            <div class="sensor-card"><span class="eyebrow">ACTIVE STAGE</span><div class="dpi-readout"><b id="dpi-readout">1600</b><small>DPI</small></div><div class="sensor-ring"><i></i><i></i><i></i></div><p>The Rust input engine tracks DPI-stage button presses in the active profile. Sensor writes remain disabled until the SE protocol is verified.</p></div>
+            <div class="sensor-card"><span class="eyebrow">ACTIVE STAGE</span><div class="dpi-readout"><b id="dpi-readout">1600</b><small>DPI</small></div><div class="sensor-ring"><i></i><i></i><i></i></div><p id="dpi-capability">Checking the native Bragi sensor-control channel…</p></div>
             <div class="stages-card"><div class="card-title"><div><span class="eyebrow">DPI LADDER</span><h2>Resolution stages</h2></div><button id="add-dpi">+ ADD STAGE</button></div><div id="dpi-stages" class="dpi-stages"></div></div>
             <div class="poll-card"><span class="eyebrow">USB REPORT RATE</span><h2>Polling frequency</h2><div class="poll-options" id="poll-options"><button data-rate="125">125<small>HZ</small></button><button data-rate="250">250<small>HZ</small></button><button data-rate="500">500<small>HZ</small></button><button data-rate="1000" class="active">1000<small>HZ</small></button><button data-rate="2000">2000<small>HZ</small></button></div><p>This setting is stored in the profile. Hardware application is capability-gated.</p></div>
           </div>
@@ -228,7 +229,7 @@
             <article class="connection-card"><span class="connection-number">02</span><div class="connection-icon">◈</div><span class="status-pill">NOT DETECTED</span><h2>Slipstream 2.4</h2><p>Requires the Corsair wireless receiver. Switch the mouse before rescanning.</p><dl><div><dt>LATENCY</dt><dd>SUB-1 MS</dd></div><div><dt>CONFIG</dt><dd>RECEIVER DEPENDENT</dd></div></dl></article>
             <article class="connection-card"><span class="connection-number">03</span><div class="connection-icon">ᛒ</div><span class="status-pill">NOT DETECTED</span><h2>Bluetooth</h2><p>Standard HID input works; vendor lighting reports may not be exposed.</p><dl><div><dt>POWER</dt><dd>LOW ENERGY</dd></div><div><dt>CONFIG</dt><dd>SOFTWARE PROFILE</dd></div></dl></article>
           </div>
-          <div class="protocol-note"><span>ENGINEERING NOTE / 2B32</span><p>This SE revision is newer than the published community driver tables. Button remapping uses Linux evdev/uinput and is transport-independent. RGB will activate automatically when a tested protocol adapter is available.</p></div>
+          <div class="protocol-note"><span>ENGINEERING NOTE / 2B32</span><p>USB exposes Corsair's Bragi command channel for buttons and six-LED RGB control. The driver requires the exact command descriptor and a successful lighting-resource negotiation before enabling writes; Bluetooth remains input-only unless its vendor channel is exposed.</p></div>
         </section>
       </main>
     </div>
