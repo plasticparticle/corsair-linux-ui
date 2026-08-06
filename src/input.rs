@@ -163,6 +163,9 @@ pub struct DriverStatus {
     pub learn_button: String,
     pub last_capture: Option<Capture>,
     pub active_sources: Vec<String>,
+    pub dpi_available: bool,
+    pub applied_dpi: Option<u32>,
+    pub dpi_error: String,
 }
 
 #[derive(Clone, Serialize)]
@@ -195,6 +198,7 @@ struct ReaderContext {
     stop: Arc<AtomicBool>,
     output: Arc<Mutex<UInput>>,
     config: Arc<Mutex<Config>>,
+    bragi_control: Option<Arc<Mutex<BragiControl>>>,
     physical_events: Sender<PhysicalInput>,
     active_readers: Arc<AtomicUsize>,
 }
@@ -349,7 +353,12 @@ fn find_mapping(config: &Config, source: &str) -> Option<(String, Mapping)> {
         })
 }
 
-fn internal_action(config: &mut Config, action: &str, direction: &str) {
+fn active_dpi(config: &Config) -> Option<u32> {
+    let profile = config.active();
+    profile.dpi_stages.get(profile.active_dpi).copied()
+}
+
+fn internal_action(config: &mut Config, action: &str, direction: &str) -> Option<u32> {
     if action == "profile" && !config.profiles.is_empty() {
         let index = config
             .profiles
@@ -375,6 +384,32 @@ fn internal_action(config: &mut Config, action: &str, direction: &str) {
             }
         }
     }
+    active_dpi(config)
+}
+
+fn apply_dpi_to_device(
+    control: Option<&Arc<Mutex<BragiControl>>>,
+    status: &Arc<Mutex<DriverStatus>>,
+    dpi: u32,
+) -> Result<(), String> {
+    let Some(control) = control else {
+        return Ok(());
+    };
+    let result = control
+        .lock()
+        .map_err(|error| error.to_string())?
+        .set_dpi(dpi)
+        .map_err(|error| error.to_string());
+    let mut current = status.lock().map_err(|error| error.to_string())?;
+    current.dpi_available = true;
+    match &result {
+        Ok(()) => {
+            current.applied_dpi = Some(dpi);
+            current.dpi_error.clear();
+        }
+        Err(error) => current.dpi_error = format!("Cannot apply {dpi} DPI: {error}"),
+    }
+    result
 }
 
 fn process_source_event(
@@ -384,14 +419,14 @@ fn process_source_event(
     type_: u16,
     code: u16,
     value: i32,
-) {
+) -> Option<u32> {
     let mapping = config
         .lock()
         .ok()
         .and_then(|cfg| find_mapping(&cfg, source));
     let Some((_id, mapping)) = mapping else {
         let _ = output.emit(type_, code, value);
-        return;
+        return None;
     };
     match mapping.action.as_str() {
         "passthrough" => {
@@ -400,7 +435,7 @@ fn process_source_event(
         "disabled" => {}
         "dpi" | "profile" if value > 0 => {
             if let Ok(mut cfg) = config.lock() {
-                internal_action(&mut cfg, &mapping.action, &mapping.value);
+                return internal_action(&mut cfg, &mapping.action, &mapping.value);
             }
         }
         "key" | "media" => {
@@ -425,15 +460,20 @@ fn process_source_event(
         }
         _ => {}
     }
+    None
 }
 
-fn process_event(output: &mut UInput, config: &Arc<Mutex<Config>>, event: InputEvent) {
+fn process_event(
+    output: &mut UInput,
+    config: &Arc<Mutex<Config>>,
+    event: InputEvent,
+) -> Option<u32> {
     if event.type_ == EV_SYN {
         let _ = output.emit(event.type_, event.code, event.value);
-        return;
+        return None;
     }
     if event.type_ != EV_KEY && event.type_ != EV_REL {
-        return;
+        return None;
     }
     let source = event_source(event.type_, event.code, event.value);
     process_source_event(
@@ -443,7 +483,7 @@ fn process_event(output: &mut UInput, config: &Arc<Mutex<Config>>, event: InputE
         event.type_,
         event.code,
         event.value,
-    );
+    )
 }
 
 impl InputDriver {
@@ -486,7 +526,10 @@ impl InputDriver {
             }
         };
         let bragi_control = match BragiControl::activate() {
-            Ok(control) => Some(Arc::new(Mutex::new(control))),
+            Ok(control) => {
+                status.lock().unwrap().dpi_available = true;
+                Some(Arc::new(Mutex::new(control)))
+            }
             Err(error) if error.kind() == io::ErrorKind::NotFound => None,
             Err(error) => {
                 let mut current = status.lock().unwrap();
@@ -508,6 +551,7 @@ impl InputDriver {
                 stop: stop.clone(),
                 output: output.clone(),
                 config: config.clone(),
+                bragi_control: bragi_control.clone(),
                 physical_events: physical_events.clone(),
                 active_readers: active_readers.clone(),
             };
@@ -528,6 +572,7 @@ impl InputDriver {
                 stop: stop.clone(),
                 output: output.clone(),
                 config: config.clone(),
+                bragi_control: bragi_control.clone(),
                 physical_events: physical_events.clone(),
                 active_readers: active_readers.clone(),
             };
@@ -538,6 +583,9 @@ impl InputDriver {
             current.error = "Input event nodes disappeared; use Rescan after reconnecting.".into();
         }
         drop(current);
+        if let Some(dpi) = config.lock().ok().and_then(|config| active_dpi(&config)) {
+            let _ = apply_dpi_to_device(bragi_control.as_ref(), &status, dpi);
+        }
         Self {
             status,
             activity,
@@ -570,6 +618,10 @@ impl InputDriver {
     pub fn bragi_control(&self) -> Option<Arc<Mutex<BragiControl>>> {
         self.bragi_control.clone()
     }
+
+    pub fn apply_dpi(&self, dpi: u32) -> Result<(), String> {
+        apply_dpi_to_device(self.bragi_control.as_ref(), &self.status, dpi)
+    }
 }
 
 fn read_bragi_input(node: &str, context: ReaderContext) {
@@ -579,6 +631,7 @@ fn read_bragi_input(node: &str, context: ReaderContext) {
         stop,
         output,
         config,
+        bragi_control,
         physical_events,
         active_readers,
     } = context;
@@ -656,8 +709,8 @@ fn read_bragi_input(node: &str, context: ReaderContext) {
                     });
                 }
             }
-            if let Ok(mut virtual_device) = output.lock() {
-                process_source_event(
+            let requested_dpi = if let Ok(mut virtual_device) = output.lock() {
+                let requested = process_source_event(
                     &mut virtual_device,
                     &config,
                     &source,
@@ -666,6 +719,12 @@ fn read_bragi_input(node: &str, context: ReaderContext) {
                     i32::from(pressed),
                 );
                 virtual_device.sync();
+                requested
+            } else {
+                None
+            };
+            if let Some(dpi) = requested_dpi {
+                let _ = apply_dpi_to_device(bragi_control.as_ref(), &status, dpi);
             }
         }
         previous = mask;
@@ -688,6 +747,7 @@ fn read_device(node: &str, context: ReaderContext) {
         stop,
         output,
         config,
+        bragi_control,
         physical_events,
         active_readers,
     } = context;
@@ -758,8 +818,12 @@ fn read_device(node: &str, context: ReaderContext) {
                     });
                 }
             }
-            if let Ok(mut virtual_device) = output.lock() {
-                process_event(&mut virtual_device, &config, *event);
+            let requested_dpi = output
+                .lock()
+                .ok()
+                .and_then(|mut virtual_device| process_event(&mut virtual_device, &config, *event));
+            if let Some(dpi) = requested_dpi {
+                let _ = apply_dpi_to_device(bragi_control.as_ref(), &status, dpi);
             }
         }
     }
@@ -819,5 +883,15 @@ mod tests {
             value: 14,
         };
         assert!(physical_input(&event).is_none());
+    }
+
+    #[test]
+    fn dpi_actions_cycle_stages_and_return_the_hardware_value() {
+        let mut config = Config::default();
+        assert_eq!(active_dpi(&config), Some(1_600));
+        assert_eq!(internal_action(&mut config, "dpi", "next"), Some(3_200));
+        assert_eq!(config.active().active_dpi, 2);
+        assert_eq!(internal_action(&mut config, "dpi", "next"), Some(800));
+        assert_eq!(internal_action(&mut config, "dpi", "previous"), Some(3_200));
     }
 }

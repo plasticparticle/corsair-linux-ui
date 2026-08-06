@@ -13,6 +13,8 @@ const MODE_HARDWARE: u8 = 0x01;
 const MODE_SOFTWARE: u8 = 0x02;
 const BRIGHTNESS_PROPERTY: u8 = 0x02;
 const BRIGHTNESS_COARSE_PROPERTY: u8 = 0x44;
+const DPI_X_PROPERTY: u8 = 0x21;
+const DPI_Y_PROPERTY: u8 = 0x22;
 const LIGHTING_HANDLE: u8 = 0x00;
 const LIGHTING_RESOURCE: u16 = 0x0001;
 pub const RGB_LED_COUNT: usize = 6;
@@ -132,9 +134,7 @@ impl BragiControl {
     }
 
     fn set_property(&self, property: u8, value: u16) -> io::Result<()> {
-        let mut packet = [0_u8; PACKET_SIZE];
-        packet[..6].copy_from_slice(&[0x08, 0x01, property, 0x00, value as u8, (value >> 8) as u8]);
-        self.transact(packet).map(|_| ())
+        self.transact(property_packet(property, value)).map(|_| ())
     }
 
     fn get_property(&self, property: u8) -> io::Result<u32> {
@@ -243,6 +243,28 @@ impl BragiControl {
         let packet = rgb_packet(colors);
         self.transact(packet).map(|_| ())
     }
+
+    /// Apply the same live resolution to both sensor axes.
+    ///
+    /// Bragi exposes current X and Y resolution as properties 0x21 and 0x22.
+    /// The Ironclaw accepts DPI directly as a little-endian 16-bit value while
+    /// it is in software mode.
+    pub fn set_dpi(&self, dpi: u32) -> io::Result<()> {
+        let dpi = u16::try_from(dpi).map_err(|_| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "DPI exceeds the Bragi value range",
+            )
+        })?;
+        if !(100..=26_000).contains(&dpi) {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "DPI must be between 100 and 26000",
+            ));
+        }
+        self.set_property(DPI_X_PROPERTY, dpi)?;
+        self.set_property(DPI_Y_PROPERTY, dpi)
+    }
 }
 
 impl Drop for BragiControl {
@@ -274,6 +296,12 @@ fn rgb_packet(colors: &[[u8; 3]; RGB_LED_COUNT]) -> [u8; PACKET_SIZE] {
         packet[7 + RGB_LED_COUNT + index] = color[1];
         packet[7 + RGB_LED_COUNT * 2 + index] = color[2];
     }
+    packet
+}
+
+fn property_packet(property: u8, value: u16) -> [u8; PACKET_SIZE] {
+    let mut packet = [0_u8; PACKET_SIZE];
+    packet[..6].copy_from_slice(&[0x08, 0x01, property, 0x00, value as u8, (value >> 8) as u8]);
     packet
 }
 
@@ -350,6 +378,14 @@ mod tests {
     }
 
     #[test]
+    fn creates_little_endian_dpi_property_packets() {
+        let x = property_packet(DPI_X_PROPERTY, 3_200);
+        let y = property_packet(DPI_Y_PROPERTY, 3_200);
+        assert_eq!(&x[..6], &[0x08, 0x01, 0x21, 0x00, 0x80, 0x0c]);
+        assert_eq!(&y[..6], &[0x08, 0x01, 0x22, 0x00, 0x80, 0x0c]);
+    }
+
+    #[test]
     #[ignore = "requires a connected 1b1c:2b32 mouse and briefly changes its lighting"]
     fn probes_and_writes_connected_ironclaw_rgb() {
         let mut control = BragiControl::activate().expect("activate connected Ironclaw");
@@ -361,5 +397,16 @@ mod tests {
             .write_rgb(&[[0x08, 0x30, 0x2a]; RGB_LED_COUNT])
             .expect("write dim mint lighting frame");
         thread::sleep(Duration::from_millis(800));
+    }
+
+    #[test]
+    #[ignore = "requires a connected 1b1c:2b32 mouse and briefly changes its sensitivity"]
+    fn writes_connected_ironclaw_dpi() {
+        let control = BragiControl::activate().expect("activate connected Ironclaw");
+        control.set_dpi(800).expect("write 800 DPI to both axes");
+        thread::sleep(Duration::from_millis(500));
+        control
+            .set_dpi(1_600)
+            .expect("restore 1600 DPI to both axes");
     }
 }

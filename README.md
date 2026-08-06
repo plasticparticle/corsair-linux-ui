@@ -32,6 +32,7 @@ The app was built around a real **Corsair Ironclaw Wireless SE**, currently iden
 | RGB effect editor | ✅ | Preview static, gradient, breathing, spectrum, wave, reactive, and off patterns across the three real lighting zones |
 | Hardware RGB apply | ✅ | Uses the native six-LED Bragi channel on `2b32`, with OpenRGB as a fallback for supported models |
 | Native RGB on `2b32` | ✅ | Static, gradient, breathing, spectrum, wave, reactive, and off effects over USB |
+| Native DPI on `2b32` | ✅ | P+ and P− cycle the profile ladder and write the selected DPI directly to both sensor axes over USB |
 
 ## Meet the control room
 
@@ -39,7 +40,7 @@ The interface is split into four stations:
 
 - **Assignments** — click a control on the mouse diagram, identify its physical event, then give it a better job.
 - **Lighting** — design and save three-zone color profiles, preview seven animated effects, then apply them when a verified RGB backend is available.
-- **Performance** — organize up to six DPI-stage markers and polling-rate preferences per profile.
+- **Performance** — organize up to six DPI stages; the selected stage is applied directly to the Ironclaw sensor over USB.
 - **Connections** — see whether the mouse arrived over USB, Slipstream 2.4 GHz, or Bluetooth.
 
 Mint means “selected for editing.” Orange means “the physical button is being pressed right now.” If an unusual firmware sends an unfamiliar code, the raw event appears on the mouse map so it cannot hide forever.
@@ -145,7 +146,8 @@ That product ID is newer than the Ironclaw definitions currently used by ckb-nex
 For `2b32`, today:
 
 - Linux input, all seven extra controls, remapping, shortcuts, live button feedback, and profiles work. The driver restores hardware mode when it exits.
-- Six-LED RGB hardware writes work over USB. Physical sensor DPI, polling-rate writes, firmware operations, and receiver pairing remain capability-locked.
+- Six-LED RGB and physical sensor-DPI writes work over USB. Polling-rate writes, firmware operations, and receiver pairing remain capability-locked.
+- The centre P+ and P− controls move up and down the DPI ladder. The side D+ and D− controls move between profiles by default.
 - The UI lets you design, animate, and save static, gradient, breathing, spectrum, wave, reactive, and off lighting profiles for the logo, wheel, and front grille.
 - **Apply to Device** unlocks after the native lighting resource passes negotiation. The Rust lighting engine drives breathing, spectrum, wave, and reactive effects; OpenRGB remains an automatic fallback for compatible older models.
 
@@ -157,6 +159,7 @@ This caution is intentional. “Did not brick the mouse” is an underrated feat
 
 ```text
 src/
+├── bragi.rs       guarded native Ironclaw USB transport for DPI, RGB, and extended controls
 ├── input.rs       evdev capture, uinput relay, shortcuts, live press events
 ├── main.rs        Tauri commands, window behavior, tray menu
 ├── model.rs       device discovery, profiles, validation, persistence

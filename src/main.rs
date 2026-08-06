@@ -59,6 +59,8 @@ fn get_state(state: tauri::State<AppState>) -> Snapshot {
 fn save_profile(profile: Profile, state: tauri::State<AppState>) -> Result<(), String> {
     Config::validate_profile(&profile)?;
     let mut config = state.config.lock().map_err(|e| e.to_string())?;
+    let is_active = config.active_profile == profile.id;
+    let selected_dpi = profile.dpi_stages[profile.active_dpi];
     let Some(existing) = config
         .profiles
         .iter_mut()
@@ -67,7 +69,12 @@ fn save_profile(profile: Profile, state: tauri::State<AppState>) -> Result<(), S
         return Err("Profile not found".into());
     };
     *existing = profile;
-    model::save_config(&state.config_path, &config)
+    model::save_config(&state.config_path, &config)?;
+    drop(config);
+    if is_active {
+        state.driver.apply_dpi(selected_dpi)?;
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -88,7 +95,15 @@ fn activate_profile(profile_id: String, state: tauri::State<AppState>) -> Result
         return Err("Profile not found".into());
     }
     config.active_profile = profile_id;
-    model::save_config(&state.config_path, &config)
+    let selected_dpi = config
+        .active()
+        .dpi_stages
+        .get(config.active().active_dpi)
+        .copied()
+        .ok_or("Active DPI stage is missing")?;
+    model::save_config(&state.config_path, &config)?;
+    drop(config);
+    state.driver.apply_dpi(selected_dpi)
 }
 
 #[tauri::command]
