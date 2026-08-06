@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Native Linux control surface for Corsair input devices"
 authors = ["Corsair Control contributors"]
 edition = "2021"
-license = "GPL-3.0-or-later"
+license = "MIT"
 rust-version = "1.87"
 
 [build-dependencies]

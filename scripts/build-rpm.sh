@@ -56,7 +56,7 @@ Name:           corsair-control
 Version:        $release_version
 Release:        1
 Summary:        Native Linux control surface for Corsair input devices
-License:        GPL-3.0-or-later
+License:        MIT
 URL:            https://github.com/plasticparticle/corsair-linux-ui
 
 %global debug_package %{nil}
