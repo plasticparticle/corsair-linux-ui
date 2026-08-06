@@ -376,10 +376,11 @@ fn internal_action(config: &mut Config, action: &str, direction: &str) -> Option
         if let Some(profile) = config.profiles.iter_mut().find(|p| p.id == active_id) {
             let len = profile.dpi_stages.len();
             if len > 0 {
+                let current = profile.active_dpi.min(len - 1);
                 profile.active_dpi = if direction == "previous" {
-                    (profile.active_dpi + len - 1) % len
+                    current.saturating_sub(1)
                 } else {
-                    (profile.active_dpi + 1) % len
+                    current.saturating_add(1).min(len - 1)
                 };
             }
         }
@@ -886,12 +887,16 @@ mod tests {
     }
 
     #[test]
-    fn dpi_actions_cycle_stages_and_return_the_hardware_value() {
+    fn dpi_actions_stop_at_the_first_and_last_stage() {
         let mut config = Config::default();
         assert_eq!(active_dpi(&config), Some(1_600));
         assert_eq!(internal_action(&mut config, "dpi", "next"), Some(3_200));
         assert_eq!(config.active().active_dpi, 2);
-        assert_eq!(internal_action(&mut config, "dpi", "next"), Some(800));
-        assert_eq!(internal_action(&mut config, "dpi", "previous"), Some(3_200));
+        assert_eq!(internal_action(&mut config, "dpi", "next"), Some(3_200));
+        assert_eq!(config.active().active_dpi, 2);
+        assert_eq!(internal_action(&mut config, "dpi", "previous"), Some(1_600));
+        assert_eq!(internal_action(&mut config, "dpi", "previous"), Some(800));
+        assert_eq!(internal_action(&mut config, "dpi", "previous"), Some(800));
+        assert_eq!(config.active().active_dpi, 0);
     }
 }

@@ -186,7 +186,7 @@ pub fn apply_device_defaults(config: &mut Config, devices: &[Device]) -> bool {
 
         // Early builds assigned the centre P+/P- controls to profiles and the
         // side D+/D- controls to DPI. Preserve custom mappings, but migrate
-        // that exact legacy default so the physical P controls own DPI.
+        // that exact legacy default to P = DPI and D = Page Up/Page Down.
         let legacy_controls = [
             ("dpiup", "dpi", "next"),
             ("dpidn", "dpi", "previous"),
@@ -208,11 +208,10 @@ pub fn apply_device_defaults(config: &mut Config, devices: &[Device]) -> bool {
                 .insert("profdn".into(), mapping("dpi", "previous", "Previous DPI"));
             profile
                 .mappings
-                .insert("dpiup".into(), mapping("profile", "next", "Next profile"));
-            profile.mappings.insert(
-                "dpidn".into(),
-                mapping("profile", "previous", "Previous profile"),
-            );
+                .insert("dpiup".into(), mapping("key", "PAGEUP", "Page Up"));
+            profile
+                .mappings
+                .insert("dpidn".into(), mapping("key", "PAGEDOWN", "Page Down"));
             changed = true;
         }
     }
@@ -297,12 +296,12 @@ pub fn buttons() -> Vec<ButtonDefinition> {
         },
         ButtonDefinition {
             id: "dpiup",
-            name: "D+ · Profile up",
+            name: "D+ · Page up",
             source: "LEARN",
         },
         ButtonDefinition {
             id: "dpidn",
-            name: "D− · Profile down",
+            name: "D− · Page down",
             source: "LEARN",
         },
         ButtonDefinition {
@@ -364,11 +363,8 @@ impl Default for Config {
                 "wheeldn".into(),
                 mapping("passthrough", "REL_WHEEL_DOWN", "Scroll down"),
             ),
-            ("dpiup".into(), mapping("profile", "next", "Next profile")),
-            (
-                "dpidn".into(),
-                mapping("profile", "previous", "Previous profile"),
-            ),
+            ("dpiup".into(), mapping("key", "PAGEUP", "Page Up")),
+            ("dpidn".into(), mapping("key", "PAGEDOWN", "Page Down")),
             ("profup".into(), mapping("dpi", "next", "Next DPI")),
             ("profdn".into(), mapping("dpi", "previous", "Previous DPI")),
             (
@@ -544,7 +540,8 @@ mod tests {
         assert_eq!(sources["profup"], "BRAGI_BUTTON:8");
         let mappings = &config.active().mappings;
         assert_eq!(mappings["profup"].action, "dpi");
-        assert_eq!(mappings["dpiup"].action, "profile");
+        assert_eq!(mappings["dpiup"].action, "key");
+        assert_eq!(mappings["dpiup"].value, "PAGEUP");
     }
 
     #[test]
@@ -593,6 +590,7 @@ mod tests {
         };
         assert!(apply_device_defaults(&mut config, &[device]));
         assert_eq!(config.active().mappings["profup"].action, "dpi");
-        assert_eq!(config.active().mappings["dpiup"].action, "profile");
+        assert_eq!(config.active().mappings["dpiup"].action, "key");
+        assert_eq!(config.active().mappings["dpiup"].value, "PAGEUP");
     }
 }

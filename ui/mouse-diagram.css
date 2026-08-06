@@ -46,15 +46,15 @@
 
 .ironclaw-render .se-palm {
   fill: url(#se-shell);
-  stroke: #373f40;
-  stroke-width: 2;
+  stroke: #454c4d;
+  stroke-width: 1.7;
 }
 
 .ironclaw-render .se-left-plate,
 .ironclaw-render .se-right-plate {
   fill: url(#se-click);
-  stroke: #596263;
-  stroke-width: 2.5;
+  stroke: #606869;
+  stroke-width: 1.8;
 }
 
 .ironclaw-render .se-grip {
@@ -70,22 +70,25 @@
 }
 
 .ironclaw-render .se-center-rail { fill: url(#se-rail); }
-.ironclaw-render .se-thumb-shelf { fill: #181e1f; stroke: #424b4c; stroke-width: 2; }
+.ironclaw-render .se-thumb-shelf,
+.ironclaw-render .se-side-recess { fill: #101415; stroke: #3d4546; stroke-width: 2; }
 .ironclaw-render .se-wheel-light { fill: #38d9c5; opacity: .5; filter: drop-shadow(0 0 8px #38d9c5); }
-.ironclaw-render .se-wheel { fill: #252c2d; stroke: #697374; stroke-width: 2; }
+.ironclaw-render .se-wheel { fill: #24292a; stroke: #737c7d; stroke-width: 2; }
 .ironclaw-render .se-wheel-art path { fill: none; stroke: #080b0c; stroke-width: 5; }
-.ironclaw-render .se-center-button { fill: #171c1d; stroke: #626b6d; stroke-width: 2; }
+.ironclaw-render .se-center-button { fill: url(#se-side); stroke: #697273; stroke-width: 2; }
 .ironclaw-render .se-channel { fill: none; stroke: #080b0c; stroke-width: 4; }
-.ironclaw-render .se-front-grill { fill: #111617; stroke: #566062; stroke-width: 2; }
-.ironclaw-render .se-front-rgb,
+.ironclaw-render .se-front-edge { fill: none; stroke: #737b7c; stroke-width: 2; opacity: .45; }
 .ironclaw-render .se-logo-rgb { fill: #38d9c5; }
 .ironclaw-render .se-palm-seam { fill: none; stroke: #4b5556; stroke-width: 3; opacity: .55; }
 
 .se-hotspots [data-button] > :first-child {
-  fill: #1b2122e8;
-  stroke: #707a7b;
-  stroke-width: 2;
+  fill: #161b1cbd;
+  stroke: #747d7e;
+  stroke-width: 1.8;
 }
+
+.se-hotspots .mesh-control > :first-child { fill: url(#se-button-mesh); }
+.se-hotspots .option-control > :first-child { fill: url(#se-side); stroke: #8a9293; }
 
 .se-hotspots .hit-target {
   fill: transparent;
@@ -100,7 +103,14 @@
 }
 
 .se-hotspots [data-button].pressed > :first-child { fill: #5a2b17ee; }
-.se-hotspots text { font-size: 10px; letter-spacing: .04em; }
+.se-hotspots text {
+  font-size: 10px;
+  letter-spacing: .04em;
+  paint-order: stroke;
+  stroke: #0a0d0e;
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+}
 
 @media (max-height: 760px) {
   .assignment-editor { padding: 18px 22px; }

@@ -28,11 +28,11 @@ The app was built around a real **Corsair Ironclaw Wireless SE**, currently iden
 | Profiles | ✅ | Keep separate layouts for desktop work, games, editing, or that one app with 47 shortcuts |
 | USB + Bluetooth discovery | ✅ | Finds Corsair HID devices and reports their current transport |
 | Slipstream discovery | ✅ | Recognizes verified receiver IDs when the dongle is present |
-| Tray/panel mode | ✅ | Close the window without stopping mappings; restore it from the custom tray icon |
+| Tray/panel mode | ✅ | Close without stopping mappings; one click restores the window on the active desktop and monitor |
 | RGB effect editor | ✅ | Preview static, gradient, breathing, spectrum, wave, reactive, and off patterns across the three real lighting zones |
 | Hardware RGB apply | ✅ | Uses the native six-LED Bragi channel on `2b32`, with OpenRGB as a fallback for supported models |
 | Native RGB on `2b32` | ✅ | Static, gradient, breathing, spectrum, wave, reactive, and off effects over USB |
-| Native DPI on `2b32` | ✅ | P+ and P− cycle the profile ladder and write the selected DPI directly to both sensor axes over USB |
+| Native DPI on `2b32` | ✅ | P+ and P− walk the profile ladder without wrapping and write the selected DPI directly to both sensor axes over USB |
 
 ## Meet the control room
 
@@ -126,8 +126,11 @@ No arbitrary shell commands are executed by button mappings. That feature was le
 
 Closing the main window hides it and leaves the Rust input engine running.
 
-- **Open Corsair Control** restores and focuses the window.
+- **Left-click the tray icon** to restore, raise, and focus the window on the desktop and monitor you are currently using.
+- **Open Corsair Control** in the right-click menu performs the same restore action.
 - **Quit** releases the input devices and stops the application.
+
+Clicking the application launcher or taskbar icon while Corsair Control is already running also restores the existing process instead of opening a second copy.
 
 The same mint-and-orange mouse icon is used in the system tray, taskbar, and desktop application menu, with dedicated sizes so it stays sharp instead of becoming a tiny turquoise smudge.
 
@@ -147,7 +150,7 @@ For `2b32`, today:
 
 - Linux input, all seven extra controls, remapping, shortcuts, live button feedback, and profiles work. The driver restores hardware mode when it exits.
 - Six-LED RGB and physical sensor-DPI writes work over USB. Polling-rate writes, firmware operations, and receiver pairing remain capability-locked.
-- The centre P+ and P− controls move up and down the DPI ladder. The side D+ and D− controls move between profiles by default.
+- The centre P+ and P− controls move up and down the DPI ladder and stop at its ends. The side D+ and D− controls send Page Up and Page Down by default.
 - The UI lets you design, animate, and save static, gradient, breathing, spectrum, wave, reactive, and off lighting profiles for the logo, wheel, and front grille.
 - **Apply to Device** unlocks after the native lighting resource passes negotiation. The Rust lighting engine drives breathing, spectrum, wave, and reactive effects; OpenRGB remains an automatic fallback for compatible older models.
 
@@ -161,7 +164,7 @@ This caution is intentional. “Did not brick the mouse” is an underrated feat
 src/
 ├── bragi.rs       guarded native Ironclaw USB transport for DPI, RGB, and extended controls
 ├── input.rs       evdev capture, uinput relay, shortcuts, live press events
-├── main.rs        Tauri commands, window behavior, tray menu
+├── main.rs        Tauri commands, single-instance focus, window behavior, Linux tray activation
 ├── model.rs       device discovery, profiles, validation, persistence
 └── rgb.rs         guarded OpenRGB adapter
 
