@@ -63,6 +63,16 @@ Button mappings stay active while the process is running. Closing the window hid
 
 ## Install it
 
+### The pleasantly boring `.deb` route
+
+Each published GitHub release automatically grows a Debian package of its own. Download the `amd64` `.deb` from the release page, then let APT install it and its runtime libraries:
+
+```bash
+sudo apt install ./corsair-control_0.1.0_amd64.deb
+```
+
+The package installs the application, desktop entry, icons, and udev permissions in their standard system locations. Reconnect the mouse once after the first installation.
+
 ### 1. Install build dependencies
 
 On Ubuntu 24.04, Linux Mint, and related Debian-based systems:
@@ -185,8 +195,16 @@ Run the checks:
 cargo test --offline
 cargo clippy --offline --all-targets -- -D warnings
 node --check ui/app.js
-bash -n scripts/install.sh scripts/uninstall.sh
+bash -n scripts/build-deb.sh scripts/install.sh scripts/uninstall.sh
 ```
+
+Build the same Debian package produced by GitHub Releases:
+
+```bash
+./scripts/build-deb.sh v0.1.0
+```
+
+The release tag must match the version in `Cargo.toml`; successful packages land in `dist/`.
 
 Build the optimized binary:
 
