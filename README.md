@@ -268,7 +268,11 @@ The uninstaller removes the binary, udev rule, desktop entry, and installed icon
 
 ## License
 
-Corsair Control is available under **GPL-3.0-or-later**.
+Corsair Control is available under the **MIT License**. Dependencies and other
+third-party components retain their own licenses.
+
+Copies distributed before this project was relicensed remain usable under the
+GPL terms that accompanied those copies.
 
 The OpenRGB adapter invokes OpenRGB as a separate installed application; no OpenRGB protocol source is copied into this repository.
 
