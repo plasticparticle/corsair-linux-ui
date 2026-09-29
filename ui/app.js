@@ -118,5 +118,19 @@ function bindEvents(){
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
 }
 
-async function init(){try{state=await call('get_state')}catch{state=clone(demoState)}renderAll();bindEvents();await loadAutostart();polling=setInterval(pollState,100);pollState();if(listen)listen('physical-input',event=>handlePhysicalInput(event.payload)).catch(()=>{})}
+async function loadBuildInfo(){
+  if(!invoke){$('#app-version-tag').textContent='PREVIEW';$('#app-version').textContent='Browser preview';$('#app-build-date').textContent='No native build loaded';return}
+  try{
+    const info=await call('get_build_info');
+    $('#app-version-tag').textContent=`v${info.version}`;
+    $('#app-version').textContent=`Corsair Control v${info.version}`;
+    $('#app-build-date').textContent=`Built ${info.buildDate}`;
+  }catch{
+    $('#app-version-tag').textContent='VERSION —';
+    $('#app-version').textContent='Version unavailable';
+    $('#app-build-date').textContent='Build date unavailable';
+  }
+}
+
+async function init(){try{state=await call('get_state')}catch{state=clone(demoState)}renderAll();bindEvents();await loadBuildInfo();await loadAutostart();polling=setInterval(pollState,100);pollState();if(listen)listen('physical-input',event=>handlePhysicalInput(event.payload)).catch(()=>{})}
 init();

@@ -189,6 +189,7 @@ pub struct InputDriver {
     activity: Arc<Mutex<BTreeMap<String, Option<Instant>>>>,
     stop: Arc<AtomicBool>,
     bragi_control: Option<Arc<Mutex<BragiControl>>>,
+    readers: Vec<thread::JoinHandle<()>>,
 }
 
 #[derive(Clone)]
@@ -500,6 +501,7 @@ impl InputDriver {
         let activity = Arc::new(Mutex::new(BTreeMap::new()));
         let stop = Arc::new(AtomicBool::new(false));
         let active_readers = Arc::new(AtomicUsize::new(0));
+        let mut readers = Vec::new();
         if nodes.is_empty() {
             status.lock().unwrap().error =
                 "No Corsair input nodes found. Reconnect the device after installing udev rules."
@@ -509,6 +511,7 @@ impl InputDriver {
                 activity,
                 stop,
                 bragi_control: None,
+                readers,
             };
         }
         let output = match UInput::new() {
@@ -523,6 +526,7 @@ impl InputDriver {
                     activity,
                     stop,
                     bragi_control: None,
+                    readers,
                 };
             }
         };
@@ -556,7 +560,7 @@ impl InputDriver {
                 physical_events: physical_events.clone(),
                 active_readers: active_readers.clone(),
             };
-            thread::spawn(move || read_device(&node, context));
+            readers.push(thread::spawn(move || read_device(&node, context)));
         }
         if let Some(control) = &bragi_control {
             let node = control
@@ -577,7 +581,7 @@ impl InputDriver {
                 physical_events: physical_events.clone(),
                 active_readers: active_readers.clone(),
             };
-            thread::spawn(move || read_bragi_input(&node, context));
+            readers.push(thread::spawn(move || read_bragi_input(&node, context)));
         }
         let mut current = status.lock().unwrap();
         if started == 0 {
@@ -592,6 +596,25 @@ impl InputDriver {
             activity,
             stop,
             bragi_control,
+            readers,
+        }
+    }
+
+    pub fn needs_reconnect(&self, expects_bragi: bool) -> bool {
+        self.readers.is_empty()
+            || self.readers.iter().any(thread::JoinHandle::is_finished)
+            || (expects_bragi && self.bragi_control.is_none())
+    }
+
+    pub fn stop(&mut self) {
+        self.stop.store(true, Ordering::Relaxed);
+        for reader in self.readers.drain(..) {
+            let _ = reader.join();
+        }
+        if let Some(control) = self.bragi_control.take() {
+            if let Ok(mut control) = control.lock() {
+                control.retire();
+            }
         }
     }
 
@@ -661,6 +684,10 @@ fn read_bragi_input(node: &str, context: ReaderContext) {
     let mut report = [0_u8; 64];
     while !stop.load(Ordering::Relaxed) {
         match file.read(&mut report) {
+            Ok(0) => {
+                status.lock().unwrap().error = "Wireless SE control channel closed".into();
+                break;
+            }
             Ok(64) => {}
             Ok(_) => continue,
             Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
@@ -738,6 +765,9 @@ fn read_bragi_input(node: &str, context: ReaderContext) {
 impl Drop for InputDriver {
     fn drop(&mut self) {
         self.stop.store(true, Ordering::Relaxed);
+        for reader in self.readers.drain(..) {
+            let _ = reader.join();
+        }
     }
 }
 
@@ -800,6 +830,10 @@ fn read_device(node: &str, context: ReaderContext) {
             status.lock().unwrap().error = format!("Input disconnected: {error}");
             break;
         }
+        if read == 0 {
+            status.lock().unwrap().error = "Input channel closed".into();
+            break;
+        }
         let count = read as usize / mem::size_of::<InputEvent>();
         for event in &events[..count] {
             if let Some(physical) = physical_input(event) {
@@ -839,6 +873,55 @@ fn read_device(node: &str, context: ReaderContext) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn reconnect_waits_for_old_readers_to_release_devices() {
+        let stop = Arc::new(AtomicBool::new(false));
+        let released = Arc::new(AtomicBool::new(false));
+        let reader_stop = stop.clone();
+        let reader_released = released.clone();
+        let reader = thread::spawn(move || {
+            while !reader_stop.load(Ordering::Relaxed) {
+                thread::yield_now();
+            }
+            reader_released.store(true, Ordering::Relaxed);
+        });
+        let mut driver = InputDriver {
+            status: Arc::new(Mutex::new(DriverStatus::default())),
+            activity: Arc::new(Mutex::new(BTreeMap::new())),
+            stop,
+            bragi_control: None,
+            readers: vec![reader],
+        };
+        assert!(!driver.needs_reconnect(false));
+        assert!(driver.needs_reconnect(true));
+        driver.stop();
+        assert!(released.load(Ordering::Relaxed));
+        assert!(driver.readers.is_empty());
+    }
+
+    #[test]
+    fn one_dead_reader_triggers_recovery_even_if_others_are_running() {
+        let (finished_tx, finished_rx) = std::sync::mpsc::channel();
+        let reader = thread::spawn(move || {
+            finished_tx.send(()).unwrap();
+        });
+        finished_rx.recv().unwrap();
+        while !reader.is_finished() {
+            thread::yield_now();
+        }
+        let driver = InputDriver {
+            status: Arc::new(Mutex::new(DriverStatus {
+                running: true,
+                ..Default::default()
+            })),
+            activity: Arc::new(Mutex::new(BTreeMap::new())),
+            stop: Arc::new(AtomicBool::new(false)),
+            bragi_control: None,
+            readers: vec![reader],
+        };
+        assert!(driver.needs_reconnect(false));
+    }
+
     #[test]
     fn event_sources_include_wheel_direction() {
         assert_eq!(event_source(EV_REL, 8, -1), "EV_REL:8:-1");

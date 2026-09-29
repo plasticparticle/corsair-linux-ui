@@ -1,7 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Corsair Control",
-  "version": "0.1.0",
   "identifier": "dev.corsaircontrol.linux",
   "build": {
     "frontendDist": "ui"

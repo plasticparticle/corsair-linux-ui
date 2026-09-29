@@ -18,7 +18,7 @@
       <div class="brand" data-tauri-drag-region>
         <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
         <span data-tauri-drag-region>CORSAIR <b>CONTROL</b></span>
-        <span class="build-tag" data-tauri-drag-region>LINUX / 01</span>
+        <span class="build-tag" id="app-version-tag" data-tauri-drag-region>VERSION —</span>
       </div>
       <div class="title-device" data-tauri-drag-region>
         <span class="signal online"></span>
@@ -62,6 +62,10 @@
           <span class="health-light"></span>
           <div><b>INPUT ENGINE</b><small id="driver-label">Checking permissions</small></div>
           <button id="driver-info" aria-label="Driver details">i</button>
+        </div>
+        <div class="app-build" aria-label="Application version and build date">
+          <strong id="app-version">Version unavailable</strong>
+          <span id="app-build-date">Build date unavailable</span>
         </div>
       </aside>
 

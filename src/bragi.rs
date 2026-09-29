@@ -28,6 +28,7 @@ pub struct BragiControl {
     input_path: PathBuf,
     software_mode: bool,
     lighting_handle_open: bool,
+    retired: bool,
 }
 
 impl BragiControl {
@@ -44,6 +45,7 @@ impl BragiControl {
             input_path,
             software_mode: false,
             lighting_handle_open: false,
+            retired: false,
         };
         let current = control.get_mode()?;
         if current != MODE_HARDWARE && current != MODE_SOFTWARE {
@@ -63,7 +65,27 @@ impl BragiControl {
         &self.input_path
     }
 
+    /// Query the device, rather than the mode remembered at activation: the
+    /// firmware can revert to hardware mode while all input handles survive.
+    pub fn software_mode_active(&self) -> io::Result<bool> {
+        self.get_mode().map(|mode| mode == MODE_SOFTWARE)
+    }
+
+    // Old RGB workers may still hold an Arc after a reconnect. Prevent both
+    // their writes and a late Drop from changing the new hardware session.
+    pub fn retire(&mut self) {
+        self.retired = true;
+        self.software_mode = false;
+        self.lighting_handle_open = false;
+    }
+
     fn open_command(&self) -> io::Result<File> {
+        if self.retired {
+            return Err(io::Error::new(
+                io::ErrorKind::NotConnected,
+                "Bragi session retired",
+            ));
+        }
         OpenOptions::new()
             .read(true)
             .write(true)
@@ -347,6 +369,24 @@ pub fn linux_code_for_bit(bit: u8) -> u16 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn retired_session_cannot_write_or_reset_replacement_session() {
+        let mut control = BragiControl {
+            command_path: PathBuf::from("/unused"),
+            input_path: PathBuf::from("/unused"),
+            software_mode: true,
+            lighting_handle_open: true,
+            retired: false,
+        };
+        control.retire();
+        assert_eq!(
+            control.open_command().unwrap_err().kind(),
+            io::ErrorKind::NotConnected
+        );
+        assert!(!control.software_mode);
+        assert!(!control.lighting_handle_open);
+    }
 
     #[test]
     fn decodes_extended_button_mask() {

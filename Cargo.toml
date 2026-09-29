@@ -1,6 +1,6 @@
 [package]
 name = "corsair-control"
-version = "0.1.0"
+version = "0.1.1"
 description = "Native Linux control surface for Corsair input devices"
 authors = ["Corsair Control contributors"]
 edition = "2021"

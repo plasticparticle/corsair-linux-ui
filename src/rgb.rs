@@ -154,12 +154,12 @@ impl RgbAdapter {
     }
 
     pub fn apply(&mut self, lighting: &Lighting) -> Result<(), String> {
+        self.current_lighting = Some(lighting.clone());
         if !self.status.available {
             return Err(self.status.reason.clone());
         }
         let animation_token = self.animation_generation.fetch_add(1, Ordering::SeqCst) + 1;
         self.pulse_generation.fetch_add(1, Ordering::SeqCst);
-        self.current_lighting = Some(lighting.clone());
 
         match &self.backend {
             RgbBackend::None => return Err(self.status.reason.clone()),
@@ -187,6 +187,10 @@ impl RgbAdapter {
         }
         self.status.last_applied = now_seconds();
         Ok(())
+    }
+
+    pub fn applied_lighting(&self) -> Option<Lighting> {
+        self.current_lighting.clone()
     }
 
     pub fn physical_input(&self) {

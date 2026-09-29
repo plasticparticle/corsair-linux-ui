@@ -16,7 +16,7 @@
 > [!CAUTION]
 > ## Experimental pre-release — install at your own risk
 >
-> Corsair Control `v0.1.0` is an early hardware-driver pre-release. It is **far from production-ready or security-hardened**, has not received an independent security audit, and currently has meaningful testing only on one Ironclaw Wireless SE (`1b1c:2b32`).
+> Corsair Control `v0.1.1` is an early hardware-driver pre-release. It is **far from production-ready or security-hardened**, has not received an independent security audit, and currently has meaningful testing only on one Ironclaw Wireless SE (`1b1c:2b32`).
 >
 > The application installs a udev permission rule, reads and grabs raw Linux input devices, creates a virtual input device, and sends reverse-engineered commands to mouse hardware. Bugs could break input until the mouse is reconnected, expose unintended device access, lose mappings, or behave differently on untested firmware and distributions. The release packages are unsigned; SHA-256 checksums provide corruption detection, not publisher authentication.
 >
@@ -37,6 +37,7 @@ The app was built around a real **Corsair Ironclaw Wireless SE**, currently iden
 | Input learning | ✅ | Press an unknown physical button and teach the profile its Linux event code |
 | Live button feedback | ✅ | Physical presses travel directly from Rust to the mouse diagram and glow orange while held |
 | Wireless SE extra buttons | ✅ | Switches `2b32` into software-control mode and reads F, B, O, profile, and DPI controls from its extended HID channel |
+| Resume recovery | ✅ | Reconnects input after suspend/hibernation or device loss; Rescan also restarts the driver and restores DPI and applied lighting |
 | Profiles | ✅ | Keep separate layouts for desktop work, games, editing, or that one app with 47 shortcuts |
 | USB + Bluetooth discovery | ✅ | Finds Corsair HID devices and reports their current transport |
 | Slipstream discovery | ✅ | Recognizes verified receiver IDs when the dongle is present |
@@ -197,6 +198,7 @@ That product ID is newer than the Ironclaw definitions currently used by ckb-nex
 For `2b32`, today:
 
 - Linux input, all seven extra controls, remapping, shortcuts, live button feedback, and profiles work. The driver restores hardware mode when it exits.
+- While running (including in the tray), the driver checks the mouse's control mode every two seconds. If firmware reverts to hardware mode or the command channel fails, it reconnects automatically and restores software mode, profile DPI, and any applied lighting. No button press or open window is required.
 - Six-LED RGB and physical sensor-DPI writes work over USB. Polling-rate writes, firmware operations, and receiver pairing remain capability-locked.
 - The centre P+ and P− controls move up and down the DPI ladder and stop at its ends. The side D+ and D− controls send Page Up and Page Down by default.
 - The UI lets you design, animate, and save static, gradient, breathing, spectrum, wave, reactive, and off lighting profiles for the logo, wheel, and front grille.
@@ -279,3 +281,17 @@ GPL terms that accompanied those copies.
 The OpenRGB adapter invokes OpenRGB as a separate installed application; no OpenRGB protocol source is copied into this repository.
 
 Corsair, Ironclaw, and related product names and marks belong to their respective owners. Their use here identifies compatible hardware and does not imply any affiliation with or endorsement by Corsair.
+
+## Version and build information
+
+The title bar shows the semantic version, and the bottom of the sidebar shows
+both the version and the UTC build timestamp. `Cargo.toml` is the version source
+for the executable, Tauri, and release packages. This patch release is `0.1.1`.
+Use `MAJOR.MINOR.PATCH`: increment PATCH for compatible fixes, MINOR for new
+functionality, and MAJOR for incompatible stable releases. Versions below 1.0
+remain experimental and may change between minor releases.
+
+The timestamp is embedded at compile time, not taken from the clock at launch.
+Reproducible builds can set `SOURCE_DATE_EPOCH` to a Unix timestamp; otherwise the
+build uses the current UTC time. An unchanged, cached executable retains its
+original build timestamp.

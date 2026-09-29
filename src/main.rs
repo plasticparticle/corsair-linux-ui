@@ -1,6 +1,7 @@
 mod bragi;
 mod input;
 mod model;
+mod recovery;
 mod rgb;
 
 use input::{DriverStatus, InputDriver};
@@ -192,9 +193,26 @@ fn linux_tray_icon(image: &tauri::image::Image<'_>) -> ksni::Icon {
 struct AppState {
     config: Arc<Mutex<Config>>,
     devices: Mutex<Vec<Device>>,
-    driver: InputDriver,
+    driver: Mutex<InputDriver>,
+    physical_tx: mpsc::Sender<input::PhysicalInput>,
+    reconnect: Mutex<()>,
     rgb: Mutex<RgbAdapter>,
     config_path: PathBuf,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BuildInfo {
+    version: &'static str,
+    build_date: &'static str,
+}
+
+#[tauri::command]
+fn get_build_info() -> BuildInfo {
+    BuildInfo {
+        version: env!("CARGO_PKG_VERSION"),
+        build_date: env!("CORSAIR_BUILD_DATE"),
+    }
 }
 
 #[derive(Serialize)]
@@ -209,12 +227,17 @@ struct Snapshot {
 
 #[tauri::command]
 fn get_state(state: tauri::State<AppState>) -> Snapshot {
+    // Release each lock before taking the next; reconnect also updates these.
+    let config = state.config.lock().unwrap().clone();
+    let devices = state.devices.lock().unwrap().clone();
+    let driver = state.driver.lock().unwrap().status();
+    let rgb = state.rgb.lock().unwrap().status.clone();
     Snapshot {
-        config: state.config.lock().unwrap().clone(),
-        devices: state.devices.lock().unwrap().clone(),
+        config,
+        devices,
         buttons: model::buttons(),
-        driver: state.driver.status(),
-        rgb: state.rgb.lock().unwrap().status.clone(),
+        driver,
+        rgb,
     }
 }
 
@@ -235,7 +258,7 @@ fn save_profile(profile: Profile, state: tauri::State<AppState>) -> Result<(), S
     model::save_config(&state.config_path, &config)?;
     drop(config);
     if is_active {
-        state.driver.apply_dpi(selected_dpi)?;
+        state.driver.lock().unwrap().apply_dpi(selected_dpi)?;
     }
     Ok(())
 }
@@ -266,19 +289,40 @@ fn activate_profile(profile_id: String, state: tauri::State<AppState>) -> Result
         .ok_or("Active DPI stage is missing")?;
     model::save_config(&state.config_path, &config)?;
     drop(config);
-    state.driver.apply_dpi(selected_dpi)
+    state.driver.lock().unwrap().apply_dpi(selected_dpi)
 }
 
 #[tauri::command]
 fn learn_button(button_id: String, state: tauri::State<AppState>) {
-    state.driver.learn(button_id);
+    state.driver.lock().unwrap().learn(button_id);
 }
 
 #[tauri::command]
 fn rescan_devices(state: tauri::State<AppState>) -> Vec<Device> {
+    reconnect_devices(&state)
+}
+
+fn reconnect_devices(state: &AppState) -> Vec<Device> {
+    let _reconnect = state.reconnect.lock().unwrap();
     let devices = model::discover_devices();
+    let mut driver = state.driver.lock().unwrap();
+    let mut rgb = state.rgb.lock().unwrap();
+    let lighting = rgb.applied_lighting();
+    *rgb = RgbAdapter::pending(&devices);
+    driver.stop();
+    *driver = InputDriver::start(
+        devices
+            .iter()
+            .flat_map(|device| device.input_nodes.clone())
+            .collect(),
+        state.config.clone(),
+        state.physical_tx.clone(),
+    );
+    *rgb = RgbAdapter::probe(&devices, driver.bragi_control());
+    if let Some(lighting) = lighting {
+        let _ = rgb.apply(&lighting);
+    }
     *state.devices.lock().unwrap() = devices.clone();
-    *state.rgb.lock().unwrap() = RgbAdapter::probe(&devices, state.driver.bragi_control());
     devices
 }
 
@@ -432,14 +476,14 @@ fn main() {
         .flat_map(|device| device.input_nodes.clone())
         .collect();
     let (physical_tx, physical_rx) = mpsc::channel();
-    let driver = InputDriver::start(nodes, config.clone(), physical_tx);
-    let bragi_rgb = driver.bragi_control();
-    let rgb_devices = devices.clone();
+    let driver = InputDriver::start(nodes, config.clone(), physical_tx.clone());
     let rgb = RgbAdapter::pending(&devices);
     let state = AppState {
         config,
         devices: Mutex::new(devices),
-        driver,
+        driver: Mutex::new(driver),
+        physical_tx,
+        reconnect: Mutex::new(()),
         rgb: Mutex::new(rgb),
         config_path,
     };
@@ -510,8 +554,55 @@ fn main() {
             });
             let rgb_handle = app.handle().clone();
             thread::spawn(move || {
-                let adapter = RgbAdapter::probe(&rgb_devices, bragi_rgb);
-                *rgb_handle.state::<AppState>().rgb.lock().unwrap() = adapter;
+                let state = rgb_handle.state::<AppState>();
+                {
+                    let _reconnect = state.reconnect.lock().unwrap();
+                    let devices = state.devices.lock().unwrap().clone();
+                    let control = state.driver.lock().unwrap().bragi_control();
+                    *state.rgb.lock().unwrap() = RgbAdapter::probe(&devices, control);
+                }
+                let mut resume = recovery::ResumeDetector::default();
+                // Sample before sleeping so the first suspend is detected too.
+                resume.resumed();
+                loop {
+                    thread::sleep(std::time::Duration::from_secs(2));
+                    let woke = resume.resumed();
+                    let devices = model::discover_devices();
+                    let nodes: Vec<_> = devices
+                        .iter()
+                        .flat_map(|device| device.input_nodes.clone())
+                        .collect();
+                    let known_nodes: Vec<_> = state
+                        .devices
+                        .lock()
+                        .unwrap()
+                        .iter()
+                        .flat_map(|device| device.input_nodes.clone())
+                        .collect();
+                    let expects_bragi = devices
+                        .iter()
+                        .any(|device| device.vendor_id == "1b1c" && device.product_id == "2b32");
+                    let failed = !nodes.is_empty()
+                        && state.driver.lock().unwrap().needs_reconnect(expects_bragi);
+                    // Extra-button events disappear in hardware mode, so an
+                    // event-driven check cannot reliably detect this reset.
+                    // Share the command mutex with DPI/RGB transactions, but
+                    // release it before reconnecting the entire session.
+                    let mode_lost = if expects_bragi && !woke && !failed && nodes == known_nodes {
+                        let control = state.driver.lock().unwrap().bragi_control();
+                        control.is_some_and(|control| {
+                            !control.lock().unwrap().software_mode_active().unwrap_or(false)
+                        })
+                    } else {
+                        false
+                    };
+                    if woke || nodes != known_nodes || failed || mode_lost {
+                        if mode_lost {
+                            eprintln!("Wireless SE software mode lost or unreachable; restoring input session");
+                        }
+                        reconnect_devices(&state);
+                    }
+                }
             });
             if !start_in_background {
                 show_main_window(app.handle());
@@ -528,6 +619,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             get_state,
+            get_build_info,
             save_profile,
             create_profile,
             activate_profile,
